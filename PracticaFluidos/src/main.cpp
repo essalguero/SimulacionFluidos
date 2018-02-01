@@ -5,7 +5,7 @@
 #include "solver.h"
 
 /* global variables */
-static int N;
+static int N; // Numero de celdas en la pantalla
 static float dt, diff, visc;
 static float force, source;
 static bool dvel;
@@ -44,7 +44,62 @@ static void DrawVelocity(void)
 
 static void DrawDensity(void)
 {
-//TODO
+	int i, j;
+
+	int altoCelda = win_y / N;
+	int anchoCelda = win_x / N;
+
+	int initX;
+	int initY;
+
+	int endX;
+	int endY;
+
+	int arrayPosition;
+	
+	// Calcular las casillas hechas por Jesus
+
+	/*for (i = 0; i <= N; i++)
+	{
+		x = (i - 0.5f) * h;
+
+		for (j = 0; j <= N; j++) {
+			y = (j - 0.5) * h;
+
+			d00 = solver.dens[XY_TO_ARRAY(i, j)];
+			d01 = solver.dens[XY_TO_ARRAY(i, j + 1)];
+			...
+		}
+	}*/
+
+
+	FOR_EACH_CELL
+
+		initX = i * altoCelda;
+		initY = i * anchoCelda;
+
+		endX = initX + altoCelda;
+		endY = initY + anchoCelda;
+
+		arrayPosition = XY_TO_ARRAY(i, j);
+
+		if (solver.dens[arrayPosition] != 0)
+			printf("pintando\n");
+
+		glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
+
+		glBegin(GL_QUADS);
+		glVertex2f(initX, initY);
+		glVertex2f(initX, endY);
+		glVertex2f(endX, endY);
+		glVertex2f(endX, initY);
+		glEnd();
+	//solver.dens
+
+
+	END_FOR
+
+		
 }
 
 /*

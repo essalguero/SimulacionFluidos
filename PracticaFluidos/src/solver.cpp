@@ -17,11 +17,52 @@ free/clear/allocate simulation data
 void Solver::FreeData(void)
 {
 //TODO: Libera los buffers de memoria.
+	if (u_prev != 0)
+	{
+		free(u_prev);
+	}
+
+	if (v_prev != 0)
+	{
+		free(v_prev);
+	}
+	
+	if (dens_prev != 0)
+	{
+		free(dens_prev);
+	}
+
+
+	if (u != 0)
+	{
+		free(u);
+	}
+
+	if (v != 0)
+	{
+		free(v);
+	}
+
+	if (dens != 0)
+	{
+		free(dens);
+	}
 }
 
 void Solver::ClearData(void)
 {
-//TODO: Borra todo el contenido de los buffers
+	/*if (u_prev != 0 && v_prev != 0 && dens_prev != 0 && 
+		u != 0 && v != 0 && dens != 0)*/
+	for (int i = 0; i < (N + 2) * (N + 2); ++i)
+	{
+		u_prev[i] = 0;
+		v_prev[i] = 0;
+		dens_prev[i] = 0;
+
+		u[i] = 0;
+		v[i] = 0;
+		dens[i] = 0;
+	}
 }
 
 bool Solver::AllocateData(void)
@@ -29,21 +70,54 @@ bool Solver::AllocateData(void)
 //TODO:
 //Reservamos memoria, en caso de fallo devlvemos false.
 //Antes de devolver true, hay que limpiar la memoria reservada con un ClearData().
+
+	if (! (u_prev = (float *)malloc((N + 2) * (N + 2) * sizeof(float))) )
+		return false;
+
+	if (! (v_prev = (float *)malloc((N + 2) * (N + 2) * sizeof(float))) )
+		return false;
+
+	if (!(dens_prev = (float *)malloc((N + 2) * (N + 2) * sizeof(float))))
+		return false;
+
+	if (!(u = (float *)malloc((N + 2) * (N + 2) * sizeof(float))))
+		return false;
+
+	if (!(v = (float *)malloc((N + 2) * (N + 2) * sizeof(float))))
+		return false;
+
+	if (!(dens = (float *)malloc((N + 2) * (N + 2) * sizeof(float))))
+		return false;
+	
+	ClearData();
+
+	return true;
+
 }
 
 void Solver::ClearPrevData() 
 {
 //TODO: Borra el contenido de los buffers _prev
+
+	for (int i = 0; i < (N + 2) * (N + 2); ++i)
+	{
+		u_prev[i] = 0;
+		v_prev[i] = 0;
+		dens_prev[i] = 0;
+	}
 }
 
 void Solver::AddDensity(unsigned x, unsigned y, float source)
 {
 //TODO: Añade el valor de source al array de densidades. Sería interesante usar la macro: XY_TO_ARRAY
+	dens_prev[ XY_TO_ARRAY(x, y) ] += source;
 }
 
 void Solver::AddVelocity(unsigned x, unsigned y, float forceX, float forceY)
 {
 //TODO: Añade el valor de fuerza a sus respectivos arrays. Sería interesante usar la macro: XY_TO_ARRAY
+	u_prev[ XY_TO_ARRAY(x, y) ] += forceX;
+	v_prev[ XY_TO_ARRAY(x, y) ] += forceY;
 }
 
 void Solver::Solve()
@@ -80,6 +154,13 @@ void Solver::VelStep()
 void Solver::AddSource(float * base, float * source)
 {
 //TODO: Teniendo en cuenta dt (Delta Time), incrementar el array base con nuestro source. Esto sirve tanto para añadir las nuevas densidades como las nuevas fuerzas.
+	if (base != 0 && source != 0)
+	{
+		for (int i = 0; i < (N + 2) * (N + 2); ++i)
+		{
+			base[i] += source[i] * dt;
+		}
+	}
 }
 
 
@@ -92,6 +173,68 @@ Input b: 0, 1 or 2.
 	2: y axis borders inverted, x axis equal.
 	Corner values allways are mean value between associated edges.
 */
+	switch (b)
+	{
+	case 0:
+		// inicializar horizontales
+		for (int i = 1; i < (N * N); i += (N + 2))
+		{
+			x[i - 1] = x[i];
+		}
+
+		for (int i = N + 1; i < (N * N); i += (N + 2))
+		{
+			x[i] = x[i + 1];
+		}
+
+		// inicializar verticales
+		for (int i = 1; i <= N; ++i)
+		{
+			x[i] = x[i + N + 2];
+			x[((N + 2) * (N + 1)) + i] = x[((N + 2) * (N)) + i];
+		}
+
+		break;
+	case 1:
+		// inicializar horizontales
+		for (int i = 1; i < (N * N); i += (N + 2))
+		{
+			x[i - 1] = -(x[i]);
+		}
+
+		for (int i = N + 1; i < (N * N); i += (N + 2))
+		{
+			x[i] = -(x[i + 1]);
+		}
+
+		// inicializar verticales
+		for (int i = 1; i <= N; ++i)
+		{
+			x[i] = x[i + N + 2];
+			x[((N + 2) * (N + 1)) + i] = x[((N + 2) * (N)) + i];
+		}
+
+		break;
+	case 2:
+		// inicializar horizontales
+		for (int i = 1; i < (N * N); i += (N + 2))
+		{
+			x[i - 1] = x[i];
+		}
+
+		for (int i = N + 1; i < (N * N); i += (N + 2))
+		{
+			x[i] = x[i + 1];
+		}
+
+		// inicializar verticales
+		for (int i = 1; i <= N; ++i)
+		{
+			x[i] = -(x[i + N + 2]);
+			x[((N + 2) * (N + 1)) + i] = -(x[((N + 2) * (N)) + i]);
+		}
+		break;
+	}
 }
 
 /*
