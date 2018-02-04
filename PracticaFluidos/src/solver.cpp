@@ -110,7 +110,10 @@ void Solver::ClearPrevData()
 void Solver::AddDensity(unsigned x, unsigned y, float source)
 {
 //TODO: Añade el valor de source al array de densidades. Sería interesante usar la macro: XY_TO_ARRAY
-	dens_prev[ XY_TO_ARRAY(x, y) ] += source;
+
+	int position = XY_TO_ARRAY(x, y);
+
+	dens_prev[position] += source;
 }
 
 void Solver::AddVelocity(unsigned x, unsigned y, float forceX, float forceY)

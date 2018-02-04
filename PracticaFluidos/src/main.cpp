@@ -49,11 +49,13 @@ static void DrawDensity(void)
 	int altoCelda = win_y / N;
 	int anchoCelda = win_x / N;
 
-	int initX;
-	int initY;
+	float x, y;
 
-	int endX;
-	int endY;
+	float initX;
+	float initY;
+
+	float endX;
+	float endY;
 
 	int arrayPosition;
 	
@@ -72,33 +74,54 @@ static void DrawDensity(void)
 		}
 	}*/
 
+	for (i = 0; i <= N; i++)
+	{
+		x = (i - 0.5f) * altoCelda;
+
+		for (j = 0; j <= N; j++) {
+			y = (j - 0.5) * altoCelda;
+		}
+	}
+
+	glBegin(GL_QUADS);
 
 	FOR_EACH_CELL
 
-		initX = i * altoCelda;
-		initY = i * anchoCelda;
+		initX = (i * altoCelda); // / (float)win_x;
+		initY = (j * anchoCelda); // / (float)win_y;
 
-		endX = initX + altoCelda;
-		endY = initY + anchoCelda;
+		endX = initX + (altoCelda); // / (float)win_x);
+		endY = initY + (anchoCelda); // / (float)win_y);
 
 		arrayPosition = XY_TO_ARRAY(i, j);
 
 		if (solver.dens[arrayPosition] != 0)
-			printf("pintando\n");
+			printf("pintando arrayPosition: %d -> valor: %f\n", arrayPosition, solver.dens[arrayPosition]);
 
+		//glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
 		glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
 
-		glBegin(GL_QUADS);
-		glVertex2f(initX, initY);
-		glVertex2f(initX, endY);
-		glVertex2f(endX, endY);
-		glVertex2f(endX, initY);
-		glEnd();
+		glVertex2f(initX / (float)win_x, initY / (float)win_y);
+		glVertex2f(initX / (float)win_x, endY / (float)win_y);
+		glVertex2f(endX / (float)win_x, endY / (float)win_y);
+		glVertex2f(endX / (float)win_x, initY / (float)win_y);
+		
 	//solver.dens
 
 
 	END_FOR
 
+
+	//glBegin(GL_QUADS);
+
+	glColor3f(255.0f, 0.0f, 0.0f);
+
+	/*glVertex2f(0, 0);
+	glVertex2f(0, 1);
+	glVertex2f(1, 1);
+	glVertex2f(1, 0);*/
+
+    glEnd();
 		
 }
 
