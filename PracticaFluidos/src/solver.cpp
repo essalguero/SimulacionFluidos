@@ -119,8 +119,10 @@ void Solver::AddDensity(unsigned x, unsigned y, float source)
 void Solver::AddVelocity(unsigned x, unsigned y, float forceX, float forceY)
 {
 //TODO: Añade el valor de fuerza a sus respectivos arrays. Sería interesante usar la macro: XY_TO_ARRAY
-	u_prev[ XY_TO_ARRAY(x, y) ] += forceX;
-	v_prev[ XY_TO_ARRAY(x, y) ] += forceY;
+	int position = XY_TO_ARRAY(x, y);
+
+	u_prev[position] += forceX;
+	v_prev[position] += forceY;
 }
 
 void Solver::Solve()
@@ -146,12 +148,12 @@ void Solver::VelStep()
 	SWAP (v_prev, v)
 	Diffuse(1, u, u_prev);  
 	Diffuse(2, v, v_prev); 
-	Project(u, v, u_prev, v_prev);		//Mass conserving.
+	//Project(u, v, u_prev, v_prev);		//Mass conserving.
 	SWAP (u_prev,u)			
 	SWAP (v_prev,v)
 	Advect(1, u, u_prev, u_prev, v_prev);
 	Advect(2, v, v_prev, u_prev, v_prev);
-	Project(u, v, u_prev, v_prev);		//Mass conserving.
+	//Project(u, v, u_prev, v_prev);		//Mass conserving.
 }
 
 void Solver::AddSource(float * base, float * source)
