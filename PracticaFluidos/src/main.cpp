@@ -118,7 +118,7 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 
 
 	glVertex2f(initX / (float)win_x, initY / (float)win_y);
-	glVertex2f((initX / (float)win_x) + solver.u[arrayPosition], (initY / (float)win_y) + solver.v[arrayPosition]);
+	glVertex2f((initX / (float)win_x) + (solver.u[arrayPosition] / win_x), (initY / (float)win_y) + (solver.v[arrayPosition] / win_y));
 
 
 

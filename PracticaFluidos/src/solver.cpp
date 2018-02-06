@@ -163,6 +163,10 @@ void Solver::AddSource(float * base, float * source)
 	{
 		for (int i = 0; i < (N + 2) * (N + 2); ++i)
 		{
+
+			if (source[i])
+				printf("Punto definido para depuracion\n");
+
 			base[i] += source[i] * dt;
 		}
 	}
