@@ -164,8 +164,8 @@ void Solver::AddSource(float * base, float * source)
 		for (int i = 0; i < (N + 2) * (N + 2); ++i)
 		{
 
-			if (source[i])
-				printf("Punto definido para depuracion\n");
+			/*if (source[i])
+				printf("Punto definido para depuracion\n");*/
 
 			base[i] += source[i] * dt;
 		}
@@ -255,6 +255,19 @@ Gauss Seidel -> Matrix x and x0
 void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 {
 //TODO: Se recomienda usar FOR_EACH_CELL, END_FOR y XY_TO_ARRAY.
+
+	int i = 0;
+	int j = 0;
+	int arrayPosition;
+
+
+
+	FOR_EACH_CELL
+		arrayPosition = XY_TO_ARRAY(i, j);
+
+	    x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
+	END_FOR
+
 }
 
 /*
@@ -264,6 +277,10 @@ por lo que solo con la entrada de dos valores, debemos poder obtener el resultad
 void Solver::Diffuse(int b, float * x, float * x0)
 {
 //TODO: Solo necesitaremos pasar dos parámetros a nuestro resolutor de sistemas de ecuaciones de Gauss Seidel. Calculamos dichos valores y llamamos a la resolución del sistema.
+
+	float a = this->diff * this->dt * this->N * this->N;
+	LinSolve(b, x, x0, a, 4 * a);
+
 }
 
 /*
