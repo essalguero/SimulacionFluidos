@@ -261,14 +261,16 @@ void Solver::LinSolve_test(int b, float * x, float * x0, float aij, float aii, i
 	int j = 0;
 	int arrayPosition;
 
+	int k;
+	for (k = 0; k <= 1; k++)
+	{
+		FOR_EACH_CELL
+			arrayPosition = XY_TO_ARRAY(i, j);
 
-
-	FOR_EACH_CELL
-		arrayPosition = XY_TO_ARRAY(i, j);
-
-	//x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
-	x[arrayPosition] = (-aij * (x[arrayPosition - 1] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[arrayPosition + 1] + b) / aii;
-	END_FOR
+		//x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
+		x[arrayPosition] = (-aij * (x[arrayPosition - 1] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[arrayPosition + 1] + x0[arrayPosition]) / aii;
+		END_FOR
+	}
 
 }
 
@@ -281,14 +283,25 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 	int arrayPosition;
 
 
+	int k;
+	for (k = 0; k <= NUMERO_ITERACIONES; k++)
+	{
+		FOR_EACH_CELL
+			arrayPosition = XY_TO_ARRAY(i, j);
 
-	FOR_EACH_CELL
-		arrayPosition = XY_TO_ARRAY(i, j);
 
-	    //x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
-	   x[arrayPosition] = (-aij * (x[arrayPosition - 1] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[arrayPosition + 1] + b) / aii;
-	END_FOR
+		//REVISAR FORMULA
 
+
+
+		//x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
+		x[arrayPosition] = (-aij * 
+			//(x[arrayPosition - 1] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[arrayPosition + 1] + x0[i]) / aii;
+			(x[arrayPosition - 1] - x[arrayPosition - this->N] - x[arrayPosition + this->N]) - x[arrayPosition + 1] + x0[arrayPosition]) / aii;
+		END_FOR
+	}
+
+	SetBounds(b, x);
 }
 
 /*
@@ -301,19 +314,20 @@ void Solver::Diffuse(int b, float * x, float * x0)
 
 
 	//Test system
-	float testArray[16] = { 10, -1, 2, 0, -1, 11, -1, 3, 2, -1, 10, -1, 0, 3, -1, 8 };
+	/*float testArray[36] = {0, 0, 0, 0, 0, 0, 0, 10, -1, 2, 0, 0, 0, -1, 11, -1, 3, 0, 0, 2, -1, 10, -1, 0, 0, 0, 3, -1, 8, 0, 0, 0, 0, 0, 0, 0 };
 	float testSolutions[4] = { 6, 25, 11, 15 };
 
-	LinSolve_test(0, testArray, testSolutions, 1.0, 4.0, 4);
+	LinSolve_test(0, testArray, testSolutions, 1.0, 4.0, 4);*/
 
 	/*float testArray[2][2] = { {16, 3},{7, -11} };
 	float testSolutions[2][1] = { { 11 }, {13} };*/
 
+	float aij = this->diff * this->dt * this->N * this->N;
+	float aii = (1 + 4) * aij;
 
 
-
-	float a = this->diff * this->dt * this->N * this->N;
-	LinSolve(b, x, x0, a, 4 * a);
+	
+	LinSolve(b, x, x0, aij, aii);
 
 }
 
