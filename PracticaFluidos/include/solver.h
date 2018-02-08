@@ -32,6 +32,11 @@ private:
 	void Diffuse(int b, float * x, float * x0);
 	void Advect(int b, float * d, float * d0, float * u, float * v);
 	void Project(float * u, float * v, float * p, float * div);
+
+	// For testing only
+
+	// N number elements in row
+	void LinSolve_test(int b, float * x, float * x0, float a, float c, int N);
 };
 
 #endif

@@ -252,6 +252,26 @@ https://es.wikipedia.org/wiki/M%C3%A9todo_de_Gauss-Seidel <- Solución de valores
 Despreciando posibles valores de x no contiguos, se simplifica mucho. Mirar diapositivas y la solución de Gauss Seidel de términos independientes.
 Gauss Seidel -> Matrix x and x0
 */
+
+void Solver::LinSolve_test(int b, float * x, float * x0, float aij, float aii, int N)
+{
+	//TODO: Se recomienda usar FOR_EACH_CELL, END_FOR y XY_TO_ARRAY.
+
+	int i = 0;
+	int j = 0;
+	int arrayPosition;
+
+
+
+	FOR_EACH_CELL
+		arrayPosition = XY_TO_ARRAY(i, j);
+
+	//x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
+	x[arrayPosition] = (-aij * (x[arrayPosition - 1] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[arrayPosition + 1] + b) / aii;
+	END_FOR
+
+}
+
 void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 {
 //TODO: Se recomienda usar FOR_EACH_CELL, END_FOR y XY_TO_ARRAY.
@@ -278,6 +298,19 @@ por lo que solo con la entrada de dos valores, debemos poder obtener el resultad
 void Solver::Diffuse(int b, float * x, float * x0)
 {
 //TODO: Solo necesitaremos pasar dos parámetros a nuestro resolutor de sistemas de ecuaciones de Gauss Seidel. Calculamos dichos valores y llamamos a la resolución del sistema.
+
+
+	//Test system
+	float testArray[16] = { 10, -1, 2, 0, -1, 11, -1, 3, 2, -1, 10, -1, 0, 3, -1, 8 };
+	float testSolutions[4] = { 6, 25, 11, 15 };
+
+	LinSolve_test(0, testArray, testSolutions, 1.0, 4.0, 4);
+
+	/*float testArray[2][2] = { {16, 3},{7, -11} };
+	float testSolutions[2][1] = { { 11 }, {13} };*/
+
+
+
 
 	float a = this->diff * this->dt * this->N * this->N;
 	LinSolve(b, x, x0, a, 4 * a);
