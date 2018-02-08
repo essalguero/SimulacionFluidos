@@ -265,7 +265,8 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 	FOR_EACH_CELL
 		arrayPosition = XY_TO_ARRAY(i, j);
 
-	    x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
+	    //x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
+	   x[arrayPosition] = (-aij * (x[arrayPosition - 1] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[arrayPosition + 1] + b) / aii;
 	END_FOR
 
 }
