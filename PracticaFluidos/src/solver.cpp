@@ -136,8 +136,8 @@ void Solver::DensStep()
 	AddSource(dens, dens_prev);			//Adding input density (dens_prev) to final density (dens).
 	SWAP(dens_prev, dens)				//Swapping matrixes, because we want save the next result in dens, not in dens_prev.
 	Diffuse(0, dens, dens_prev);		//Writing result in dens because we made the swap before. bi = dens_prev. The initial trash in dens matrix, doesnt matter, because it converges anyways.
-	SWAP(dens_prev, dens)				//Swapping matrixes, because we want save the next result in dens, not in dens_prev.
-	Advect(0, dens, dens_prev, u, v);	//Advect phase, result in dens.
+	//SWAP(dens_prev, dens)				//Swapping matrixes, because we want save the next result in dens, not in dens_prev.
+	//Advect(0, dens, dens_prev, u, v);	//Advect phase, result in dens.
 }
 
 void Solver::VelStep()
@@ -149,10 +149,10 @@ void Solver::VelStep()
 	Diffuse(1, u, u_prev);  
 	Diffuse(2, v, v_prev); 
 	//Project(u, v, u_prev, v_prev);		//Mass conserving.
-	SWAP (u_prev,u)			
-	SWAP (v_prev,v)
-	Advect(1, u, u_prev, u_prev, v_prev);
-	Advect(2, v, v_prev, u_prev, v_prev);
+	//SWAP (u_prev,u)			
+	//SWAP (v_prev,v)
+	//Advect(1, u, u_prev, u_prev, v_prev);
+	//Advect(2, v, v_prev, u_prev, v_prev);
 	//Project(u, v, u_prev, v_prev);		//Mass conserving.
 }
 
@@ -292,16 +292,17 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 
 		//REVISAR FORMULA
 
-
+		float sumaTerminos = -x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)] - x[XY_TO_ARRAY(i, j + 1)];
 
 		//x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
-		x[arrayPosition] = (-aij * 
-			//(x[arrayPosition - 1] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[arrayPosition + 1] + x0[i]) / aii;
-			(x[arrayPosition - 1] - x[arrayPosition - this->N] - x[arrayPosition + this->N]) - x[arrayPosition + 1] + x0[arrayPosition]) / aii;
+		x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;
+			//(x[arrayPosition - 1] + x[arrayPosition - this->N] + x[arrayPosition + this->N]) + x[arrayPosition + 1]) + x0[arrayPosition] / aii;
 		END_FOR
+
+			SetBounds(b, x);
 	}
 
-	SetBounds(b, x);
+	
 }
 
 /*
@@ -323,7 +324,7 @@ void Solver::Diffuse(int b, float * x, float * x0)
 	float testSolutions[2][1] = { { 11 }, {13} };*/
 
 	float aij = this->diff * this->dt * this->N * this->N;
-	float aii = (1 + 4) * aij;
+	float aii = 1 + (4 * aij);
 
 
 	

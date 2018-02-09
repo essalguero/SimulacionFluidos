@@ -6,7 +6,7 @@
 #define END_FOR }}
 #define SWAP(x0,x) {float * tmp=x0;x0=x;x=tmp;}
 
-#define NUMERO_ITERACIONES 1
+#define NUMERO_ITERACIONES 30
 
 class Solver
 {

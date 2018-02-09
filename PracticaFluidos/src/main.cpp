@@ -65,6 +65,8 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 
 	int arrayPosition;
 
+	float h = 1 / (double)(N + 2);
+
 	// Calcular las casillas hechas por Jesus
 
 	/*for (i = 0; i <= N; i++)
@@ -91,7 +93,7 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 
 	glLineWidth(1.0f);
 	
-	glBegin(GL_LINES);
+/*	glBegin(GL_LINES);
 
 	FOR_EACH_CELL
 
@@ -103,8 +105,7 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 
 	arrayPosition = XY_TO_ARRAY(i, j);
 
-	/*if (solver.u[arrayPosition] != 0 || solver.v[arrayPosition])
-		printf("pintando arrayPosition: %d -> valor: %f\n", arrayPosition, solver.dens[arrayPosition]);*/
+
 
 	//glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
 	glColor3f(solver.u[arrayPosition], solver.u[arrayPosition], solver.u[arrayPosition]);
@@ -117,22 +118,58 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 	//solver.dens
 
 
-	glVertex2f(initX / (float)win_x, initY / (float)win_y);
-	glVertex2f((initX / (float)win_x) + (solver.u[arrayPosition] / win_x), (initY / (float)win_y) + (solver.v[arrayPosition] / win_y));
+	//glVertex2f(initX / (float)win_x, initY / (float)win_y);
+	//glVertex2f((initX / (float)win_x) + (solver.u[arrayPosition] / win_x), (initY / (float)win_y) + (solver.v[arrayPosition] / win_y));
 
+	/*glVertex2f((i - 0.5f) * h, (j - 0.5f) * h);
+	glVertex2f((i - 0.5f) * h, (j + 0.5f) * h);
 
-
-	END_FOR
+	END_FOR*/
 
 
 		//glBegin(GL_QUADS);
 
-		glColor3f(255.0f, 0.0f, 0.0f);
+		//glColor3f(255.0f, 0.0f, 0.0f);
 
 	/*glVertex2f(0, 0);
 	glVertex2f(0, 1);
 	glVertex2f(1, 1);
 	glVertex2f(1, 0);*/
+
+	//glEnd();
+
+
+
+	float xPosOrig;
+	float yPosOrig;
+	float xPosEnd;
+	float yPosEnd;
+
+	glBegin(GL_LINES);
+
+
+	for (int i = 1; i < N + 2; i++)
+	{
+		xPosOrig = (i - 0.5f) * h;
+
+		for (int j = 1; j < N + 2; ++j)
+		{
+			
+			yPosOrig = (j - 0.5f) * h;
+			
+			xPosEnd = xPosOrig + solver.u[XY_TO_ARRAY(i, j)];
+			yPosEnd = yPosOrig + solver.v[XY_TO_ARRAY(i, j)];
+			
+			glVertex2f(xPosOrig, yPosOrig);
+
+
+
+			//glVertex2f(((i - 0.5f) + solver.u[i, j]), ((j - 0.5f) + solver.v[i, j]));
+			glVertex2f(xPosEnd, yPosEnd);
+
+			glColor3f(255.0f * xPosEnd, 255.0f * yPosEnd, 0.0f);
+		}
+	}
 
 	glEnd();
 
@@ -140,10 +177,14 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 
 static void DrawDensity(void)
 {
-	int i, j;
+	//int i, j;
 
-	int altoCelda = win_y / N;
-	int anchoCelda = win_x / N;
+
+	float h = 1 / (double)(N + 2);
+
+
+	//int altoCelda = win_y / N;
+	//int anchoCelda = win_x / N;
 
 	float x, y;
 
@@ -170,52 +211,24 @@ static void DrawDensity(void)
 		}
 	}*/
 
-	/*for (i = 0; i <= N; i++)
-	{
-		x = (i - 0.5f) * altoCelda;
-
-		for (j = 0; j <= N; j++) {
-			y = (j - 0.5) * altoCelda;
-		}
-	}*/
 
 	glBegin(GL_QUADS);
 
-	FOR_EACH_CELL
+	for (int i = 0; i <= N; ++i)
+	{
+		for (int j = 0; j <= N; ++j)
+		{
+			arrayPosition = XY_TO_ARRAY(i, j);
 
-		initX = (i * altoCelda); // / (float)win_x;
-		initY = (j * anchoCelda); // / (float)win_y;
-
-		endX = initX + (altoCelda); // / (float)win_x);
-		endY = initY + (anchoCelda); // / (float)win_y);
-
-		arrayPosition = XY_TO_ARRAY(i, j);
-
-		/*if (solver.dens[arrayPosition] != 0)
-			printf("pintando arrayPosition: %d -> valor: %f\n", arrayPosition, solver.dens[arrayPosition]);*/
-
-		//glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
-		glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
-
-		glVertex2f(initX / (float)win_x, initY / (float)win_y);
-		glVertex2f(initX / (float)win_x, endY / (float)win_y);
-		glVertex2f(endX / (float)win_x, endY / (float)win_y);
-		glVertex2f(endX / (float)win_x, initY / (float)win_y);
-		
-	//solver.dens
+			glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
 
 
-	END_FOR
-
-
-	//glBegin(GL_QUADS);
-
-	glColor3f(255.0f, 0.0f, 0.0f);
-
-	/*glVertex2f(0, 0);
-	glVertex2f(0, 1);
-	glVertex2f(1, 1);
-	glVertex2f(1, 0);*/
+			glVertex2f((i - 0.5f) * h, (j - 0.5f) * h);
+			glVertex2f((i - 0.5f) * h, (j + 0.5f) * h);
+			glVertex2f((i + 0.5f) * h, (j + 0.5f) * h);
+			glVertex2f((i + 0.5f) * h, (j - 0.5f) * h);
+		}
+	}
 
     glEnd();
 		
