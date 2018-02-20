@@ -6,6 +6,7 @@
 #define END_FOR }}
 #define SWAP(x0,x) {float * tmp=x0;x0=x;x=tmp;}
 
+// Define el numero de veces que se va a ejecutar el merodo iterativo de resolucion
 #define NUMERO_ITERACIONES 30
 
 class Solver
@@ -38,7 +39,7 @@ private:
 	// For testing only
 
 	// N number elements in row
-	void LinSolve_test(int b, float * x, float * x0, float a, float c, int N);
+	//void LinSolve_test(int b, float * x, float * x0, float a, float c, int N);
 };
 
 #endif

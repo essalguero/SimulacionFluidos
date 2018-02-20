@@ -13,7 +13,7 @@ static bool dvel;
 static int win_id;
 static int win_x, win_y;	//Window Size.
 static int mouse_down[3];	//Mouse button states.
-static int omx, omy, mx, my;
+static int omx, omy, mx, my; // oldmousex, oldmousey, mousex, mousey
 
 static Solver solver;
 
@@ -65,7 +65,7 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 
 	int arrayPosition;
 
-	float h = 1 / (double)(N + 2);
+	float h = 1 / (double)(N + 2); 
 
 	// Calcular las casillas hechas por Jesus
 
@@ -148,11 +148,11 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 	glBegin(GL_LINES);
 
 
-	for (int i = 1; i < N + 2; i++)
+	for (int i = 1; i < N + 1; i++)
 	{
 		xPosOrig = (i - 0.5f) * h;
 
-		for (int j = 1; j < N + 2; ++j)
+		for (int j = 1; j < N + 1; ++j)
 		{
 			
 			yPosOrig = (j - 0.5f) * h;
@@ -214,9 +214,9 @@ static void DrawDensity(void)
 
 	glBegin(GL_QUADS);
 
-	for (int i = 0; i <= N; ++i)
+	for (int i = 1; i < N + 1; ++i)
 	{
-		for (int j = 0; j <= N; ++j)
+		for (int j = 1; j < N + 1; ++j)
 		{
 			arrayPosition = XY_TO_ARRAY(i, j);
 
@@ -379,7 +379,7 @@ int main(int argc, char ** argv)
 	if (argc != 1 && argc != 6) {
 		fprintf(stderr, "usage : %s N dt diff visc force source\n", argv[0]);
 		fprintf(stderr, "where:\n"); \
-			fprintf(stderr, "\t N      : grid resolution\n");
+		fprintf(stderr, "\t N      : grid resolution\n");
 		fprintf(stderr, "\t dt     : time step\n");
 		fprintf(stderr, "\t diff   : diffusion rate of the density\n");
 		fprintf(stderr, "\t visc   : viscosity of the fluid\n");
