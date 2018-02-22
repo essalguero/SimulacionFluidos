@@ -168,12 +168,16 @@ void Solver::AddSource(float * base, float * source)
 	{
 		for (int i = 0; i < (N + 2) * (N + 2); ++i)
 		{
-
+		
 			/*if (source[i])
-			printf("Punto definido para depuracion\n");*/
-
+				printf("Punto definido para depuracion\n");*/
+		
 			base[i] += source[i] * dt;
 		}
+
+		/*for (int i = 1; i <= N; ++i)
+			for (int j = 1; j <= N; ++j)
+				base[(i * N) + j] += source[(i * N) + j] * dt;*/
 	}
 }
 
@@ -331,7 +335,7 @@ d is overwrited with the initial d0 data and affected by the u & v vectorfield.
 Hay que tener en cuenta que el centro de las casillas representa la posición entera dentro de la casilla, por lo que los bordes estan
 en las posiciones x,5.
 */
-void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
+void Solver::Advect__error(int b, float * d, float * d0, float * u, float * v)
 {
 	//TODO: Se aplica el campo vectorial realizando una interploación lineal entre las 4 casillas más cercanas donde caiga el nuevo valor.
 
@@ -359,12 +363,14 @@ void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
 	int integerUPosition;
 	int integerVPosition;
 
-	for (int i = 1; i <= N; i++)
+	for (int i = 1; i <= N + 1; i++)
 	{
-		for (int j = 1; j <= N; j++)
+		for (int j = 1; j <= N + 1; j++)
 		{
+	//int i, j;
+	//FOR_EACH_CELL
 			arrayPosition = (i * (N + 2)) + j;
-
+			//arrayPosition = XY_TO_ARRAY(j, i);
 
 			uValue = u[arrayPosition];
 			vValue = v[arrayPosition];
@@ -411,12 +417,49 @@ void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
 				vInterpolation = (u0Interpolation * percentageUp) + (u1Interpolation * percentageDown);
 
 				d[arrayPosition] = vInterpolation;
+				//d[XY_TO_ARRAY(j, i)] = vInterpolation;
 			}
+
+			
+			//END_FOR
 		}
 		//      cout << endl;
 	}
 	cout << endl << endl << endl << endl << endl << endl;
 }
+
+
+
+void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
+{
+	int i;
+	int j;
+
+	float currentUValue;
+	float currentVValue;
+
+	float originUPosition;
+	float originVPosition;
+
+	int integerUPosition;
+	int integerVPosition;
+
+	FOR_EACH_CELL
+		d[XY_TO_ARRAY(i, j)] = d0[XY_TO_ARRAY(i, j)];
+
+		currentUValue = u[XY_TO_ARRAY(i, j)];
+		currentVValue = v[XY_TO_ARRAY(i, j)];
+
+		originUPosition = -(currentUValue * dt * N);
+		originVPosition = -(currentVValue * dt * N);
+
+		integerUPosition = static_cast<int>(trunc(originUPosition));
+		integerVPosition = static_cast<int>(trunc(originVPosition));
+
+	END_FOR
+}
+
+
 
 /*
 Se encarga de estabilizar el fluido y hacerlo conservativo de masa. Se usa solo en las matrices de velocidades.

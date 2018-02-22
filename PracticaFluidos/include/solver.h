@@ -36,6 +36,10 @@ private:
 	void Advect(int b, float * d, float * d0, float * u, float * v);
 	void Project(float * u, float * v, float * p, float * div);
 
+
+
+	void Solver::Advect__error(int b, float * d, float * d0, float * u, float * v);
+
 	// For testing only
 
 	// N number elements in row
