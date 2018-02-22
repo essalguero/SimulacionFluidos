@@ -13,7 +13,7 @@ static bool dvel;
 static int win_id;
 static int win_x, win_y;	//Window Size.
 static int mouse_down[3];	//Mouse button states.
-static int omx, omy, mx, my; // oldmousex, oldmousey, mousex, mousey
+static int omx, omy, mx, my;
 
 static Solver solver;
 
@@ -40,15 +40,15 @@ static void PostDisplay(void)
 static void DrawVelocity(void)
 {
 	/*De la misma manera, rellenaremos la función de pintado del campo vectorial:
-	
+
 	static void DrawVelocity(void)
-Esta vez con las funciones glLineWidth(1.0f), glBegin(GL_LINES), glVertex2f(x, y) y glEnd().
-En la medida de lo posible, debería pintarse el campo vectorial de tal manera que se pueda
-diferenciar el sentido en el que fluyen los vectores, esto se consigue añadiendo un color
-dependiente del sentido del vector.
-Para comprobar que todo funciona, probaremos la aplicación y veremos que podemos pintar en ella
-si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
-*/
+	Esta vez con las funciones glLineWidth(1.0f), glBegin(GL_LINES), glVertex2f(x, y) y glEnd().
+	En la medida de lo posible, debería pintarse el campo vectorial de tal manera que se pueda
+	diferenciar el sentido en el que fluyen los vectores, esto se consigue añadiendo un color
+	dependiente del sentido del vector.
+	Para comprobar que todo funciona, probaremos la aplicación y veremos que podemos pintar en ella
+	si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
+	*/
 
 	int i, j;
 
@@ -65,7 +65,7 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 
 	int arrayPosition;
 
-	float h = 1 / (double)(N + 2); 
+	float h = 1 / (double)(N + 2);
 
 	// Calcular las casillas hechas por Jesus
 
@@ -92,52 +92,6 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 	}*/
 
 	glLineWidth(1.0f);
-	
-/*	glBegin(GL_LINES);
-
-	FOR_EACH_CELL
-
-		initX = (i * altoCelda); // / (float)win_x;
-	initY = (j * anchoCelda); // / (float)win_y;
-
-	endX = initX + (altoCelda); // / (float)win_x);
-	endY = initY + (anchoCelda); // / (float)win_y);
-
-	arrayPosition = XY_TO_ARRAY(i, j);
-
-
-
-	//glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
-	glColor3f(solver.u[arrayPosition], solver.u[arrayPosition], solver.u[arrayPosition]);
-
-	/*glVertex2f(initX / (float)win_x, initY / (float)win_y);
-	glVertex2f(initX / (float)win_x, endY / (float)win_y);
-	glVertex2f(endX / (float)win_x, endY / (float)win_y);
-	glVertex2f(endX / (float)win_x, initY / (float)win_y);*/
-
-	//solver.dens
-
-
-	//glVertex2f(initX / (float)win_x, initY / (float)win_y);
-	//glVertex2f((initX / (float)win_x) + (solver.u[arrayPosition] / win_x), (initY / (float)win_y) + (solver.v[arrayPosition] / win_y));
-
-	/*glVertex2f((i - 0.5f) * h, (j - 0.5f) * h);
-	glVertex2f((i - 0.5f) * h, (j + 0.5f) * h);
-
-	END_FOR*/
-
-
-		//glBegin(GL_QUADS);
-
-		//glColor3f(255.0f, 0.0f, 0.0f);
-
-	/*glVertex2f(0, 0);
-	glVertex2f(0, 1);
-	glVertex2f(1, 1);
-	glVertex2f(1, 0);*/
-
-	//glEnd();
-
 
 
 	float xPosOrig;
@@ -154,15 +108,13 @@ si todo está correctamente hecho. Con “v” podremos ver el campo vectorial.
 
 		for (int j = 1; j < N + 1; ++j)
 		{
-			
+
 			yPosOrig = (j - 0.5f) * h;
-			
+
 			xPosEnd = xPosOrig + solver.u[XY_TO_ARRAY(i, j)];
 			yPosEnd = yPosOrig + solver.v[XY_TO_ARRAY(i, j)];
-			
+
 			glVertex2f(xPosOrig, yPosOrig);
-
-
 
 			//glVertex2f(((i - 0.5f) + solver.u[i, j]), ((j - 0.5f) + solver.v[i, j]));
 			glVertex2f(xPosEnd, yPosEnd);
@@ -195,28 +147,28 @@ static void DrawDensity(void)
 	float endY;
 
 	int arrayPosition;
-	
+
 	// Calcular las casillas hechas por Jesus
 
 	/*for (i = 0; i <= N; i++)
 	{
-		x = (i - 0.5f) * h;
+	x = (i - 0.5f) * h;
 
-		for (j = 0; j <= N; j++) {
-			y = (j - 0.5) * h;
+	for (j = 0; j <= N; j++) {
+	y = (j - 0.5) * h;
 
-			d00 = solver.dens[XY_TO_ARRAY(i, j)];
-			d01 = solver.dens[XY_TO_ARRAY(i, j + 1)];
-			...
-		}
+	d00 = solver.dens[XY_TO_ARRAY(i, j)];
+	d01 = solver.dens[XY_TO_ARRAY(i, j + 1)];
+	...
+	}
 	}*/
 
 
 	glBegin(GL_QUADS);
 
-	for (int i = 1; i < N + 1; ++i)
+	for (int i = 1; i <= N; ++i)
 	{
-		for (int j = 1; j < N + 1; ++j)
+		for (int j = 1; j <= N; ++j)
 		{
 			arrayPosition = XY_TO_ARRAY(i, j);
 
@@ -230,8 +182,8 @@ static void DrawDensity(void)
 		}
 	}
 
-    glEnd();
-		
+	glEnd();
+
 }
 
 /*
@@ -390,6 +342,7 @@ int main(int argc, char ** argv)
 
 	if (argc == 1) {
 		N = 64;
+		//N = 2;
 		dt = 0.1f;
 		diff = 0.0001f;
 		visc = 0.0f;
@@ -415,7 +368,7 @@ int main(int argc, char ** argv)
 	printf("\t Quit by pressing the 'q' key\n");
 
 	dvel = false;
-	
+
 	solver.Init(N, dt, diff, visc);
 
 	if (!solver.AllocateData()) exit(1);

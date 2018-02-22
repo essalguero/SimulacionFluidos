@@ -116,12 +116,9 @@ void Solver::AddDensity(unsigned x, unsigned y, float source)
 {
 	//TODO: Añade el valor de source al array de densidades. Sería interesante usar la macro: XY_TO_ARRAY
 
-	if ((x > 0) && (x <= N) && (y > 0) && (y <= N))
-	{
-		int position = XY_TO_ARRAY(x, y);
+	int position = XY_TO_ARRAY(x, y);
 
-		dens_prev[position] += source;
-	}
+	dens_prev[position] += source;
 }
 
 void Solver::AddVelocity(unsigned x, unsigned y, float forceX, float forceY)
@@ -153,15 +150,15 @@ void Solver::VelStep()
 	AddSource(u, u_prev);
 	AddSource(v, v_prev);
 	SWAP(u_prev, u)
-		SWAP(v_prev, v)
-		Diffuse(1, u, u_prev);
+	SWAP(v_prev, v)
+	Diffuse(1, u, u_prev);
 	Diffuse(2, v, v_prev);
-	//Project(u, v, u_prev, v_prev);		//Mass conserving.
-	//SWAP (u_prev,u)
-	//SWAP (v_prev,v)
-	//Advect(1, u, u_prev, u_prev, v_prev);
-	//Advect(2, v, v_prev, u_prev, v_prev);
-	//Project(u, v, u_prev, v_prev);		//Mass conserving.
+	Project(u, v, u_prev, v_prev);		//Mass conserving.
+	SWAP(u_prev, u)
+	SWAP(v_prev, v)
+	Advect(1, u, u_prev, u_prev, v_prev);
+	Advect(2, v, v_prev, u_prev, v_prev);
+	Project(u, v, u_prev, v_prev);		//Mass conserving.
 }
 
 void Solver::AddSource(float * base, float * source)
@@ -169,7 +166,7 @@ void Solver::AddSource(float * base, float * source)
 	//TODO: Teniendo en cuenta dt (Delta Time), incrementar el array base con nuestro source. Esto sirve tanto para añadir las nuevas densidades como las nuevas fuerzas.
 	if (base != 0 && source != 0)
 	{
-		for (int i = 1; i < (N + 2) * (N + 2); ++i)
+		for (int i = 0; i < (N + 2) * (N + 2); ++i)
 		{
 
 			/*if (source[i])
@@ -260,28 +257,6 @@ https://es.wikipedia.org/wiki/M%C3%A9todo_de_Gauss-Seidel <- Solución de valores
 Despreciando posibles valores de x no contiguos, se simplifica mucho. Mirar diapositivas y la solución de Gauss Seidel de términos independientes.
 Gauss Seidel -> Matrix x and x0
 */
-
-/*void Solver::LinSolve_test(int b, float * x, float * x0, float aij, float aii, int N)
-{
-//TODO: Se recomienda usar FOR_EACH_CELL, END_FOR y XY_TO_ARRAY.
-
-int i = 0;
-int j = 0;
-int arrayPosition;
-
-int k;
-for (k = 0; k <= 1; k++)
-{
-FOR_EACH_CELL
-arrayPosition = XY_TO_ARRAY(i, j);
-
-//x[XY_TO_ARRAY(i, j)] = (-aij * (x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[XY_TO_ARRAY(i, j + 1)] + b) / aii;
-x[arrayPosition] = (-aij * (x[arrayPosition - 1] - x[XY_TO_ARRAY(i - 1, j)] - x[XY_TO_ARRAY(i + 1, j)]) - x[arrayPosition + 1] + x0[arrayPosition]) / aii;
-END_FOR
-}
-
-}*/
-
 void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 {
 	//TODO: Se recomienda usar FOR_EACH_CELL, END_FOR y XY_TO_ARRAY.
@@ -290,6 +265,7 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 	int j = 0;
 	//int arrayPosition;
 
+	float sumaTerminos;
 
 	int k;
 	for (k = 0; k < NUMERO_ITERACIONES; k++)
@@ -298,18 +274,26 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 			//arrayPosition = XY_TO_ARRAY(i, j);
 
 
-			// Se suma por componentes, comprovando los bordes. Se evita que se atraviesen los bordes y aparezca humo por el lado contrario
-			float sumaTerminos = 0;
-				
+			//REVISAR FORMULA
+
+			/*float sumaTerminos = - x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)]
+			- x[XY_TO_ARRAY(i + 1, j)] - x[XY_TO_ARRAY(i, j + 1)];
+
+
+
+			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;*/
+
+			sumaTerminos = 0;
+
 			if (j > 0)
 				sumaTerminos -= x[XY_TO_ARRAY(i, j - 1)];
-					
-			if (i >= 0)
+
+			if (i > 0)
 				sumaTerminos -= x[XY_TO_ARRAY(i - 1, j)];
 
 			if (i < N)
 				sumaTerminos -= x[XY_TO_ARRAY(i + 1, j)];
-				
+
 			if (j < N)
 				sumaTerminos -= x[XY_TO_ARRAY(i, j + 1)];
 
@@ -318,7 +302,7 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 
 		END_FOR
 
-			SetBounds(b, x);
+		SetBounds(b, x);
 	}
 
 
@@ -352,84 +336,86 @@ void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
 	//TODO: Se aplica el campo vectorial realizando una interploación lineal entre las 4 casillas más cercanas donde caiga el nuevo valor.
 
 	int breakPoint = 0;
+	float uValue{ 0 };
+	float vValue{ 0 };
+	int arrayPosition;
+	int finalArrayPosition;
+
+	float u0Interpolation;
+	float u1Interpolation;
+	float vInterpolation;
+
 	float vPosition{ 0 };
 	float uPosition{ 0 };
 
-	float newPositionU;
-	float newPositionV;
+	int finalPositionU;
+	int finalPositionV;
 
-	float densU;
-	float densV;
+	float percentageLeft;
+	float percentageRight;
+	float percentageUp;
+	float percentageDown;
 
-	float percentageU;
-	float percentageV;
-
-
-	int row;
-	int column;
-
-	int arrayPosition;
+	int integerUPosition;
+	int integerVPosition;
 
 	for (int i = 1; i <= N; i++)
 	{
 		for (int j = 1; j <= N; j++)
 		{
+			arrayPosition = (i * (N + 2)) + j;
 
-			arrayPosition = (i * N) + j;
 
-			//cout << "" << d0[(i * N) + j] << " ";
-			if (d0[arrayPosition] != 0)
+			uValue = u[arrayPosition];
+			vValue = v[arrayPosition];
+
+			if (v[arrayPosition] > 0.01)
+				//cout << "Control point for debugging" << endl;
+
+			// Calcular la posicion del array para obtener los valores
+			uPosition = uValue * dt * N;
+			vPosition = vValue * dt * N;
+
+			// Invertimos el sentido del vector porque lo que queremos saber es desde donde se ha desplazado la densidad
+			// para interpolar su valor
+			uPosition *= -1;
+			vPosition *= -1;
+
+			integerUPosition = static_cast<int>(trunc(uPosition));
+			integerVPosition = static_cast<int>(trunc(vPosition));
+
+			// Posiciones de u y v que van a ser utilizadas para calcular los nuevos valores
+			finalPositionU = i + integerUPosition;
+			finalPositionV = j + integerVPosition;
+
+			// interpolar en horizontal -> u
+
+
+			finalArrayPosition = (finalPositionU * (N + 2)) + finalPositionV;
+
+
+			// If para controlar que no nos salgamos de los limites del array
+			//if (finalArrayPosition > 0 && finalArrayPosition < (N + 2) * (N + 2))
+			if (finalPositionU > 0 && finalPositionV > 0 && finalPositionU < (N + 1) && finalPositionV < (N + 1))
 			{
-				breakPoint = 1;
 
-				//d[(i * N) + j] = d0[(i * N) + j] * u[(i * N) + j] * v[(i * N) + j];
-				//cout << "vPosition: " << v[((i * N) + j)] << endl;
-				//cout << "uPosition: " << u[((i * N) + j)] << endl;
+				percentageLeft = 1 - (abs(uPosition - integerUPosition));
+				percentageRight = abs(uPosition - integerUPosition);
 
-				
+				percentageUp = 1 - abs((vPosition - integerVPosition));
+				percentageDown = abs(vPosition - integerVPosition);
 
-				uPosition = i + (u[arrayPosition] * dt * N);
-				vPosition = j + (v[arrayPosition] * dt * N);
+				u0Interpolation = (d0[finalArrayPosition] * percentageLeft) + (d0[finalArrayPosition + 1] * percentageRight);
+				u1Interpolation = (d0[finalArrayPosition + N + 2] * percentageLeft) + (d0[finalArrayPosition + N + 2 + 1] * percentageRight);
 
-				if (abs(uPosition > 0.001) || abs(vPosition > 0.001))
-				{
-					breakPoint = 2;
+				vInterpolation = (u0Interpolation * percentageUp) + (u1Interpolation * percentageDown);
 
-					//int positionI = uPosition * dt * N;
-
-					//if (positionI >= 0 && positionI <= N)
-					//	d[((i * N) + j + positionI)] = d0[((i * N) + j)];
-
-					//int positionJ = vPosition;
-					//if (positionJ >= 0 && positionJ <= N)
-					//	d[((i * N) + j + (positionJ * (N + 2)))] = d0[((i * N) + j)];
-
-					row = trunc(uPosition);
-					column = trunc(vPosition);
-					//d[arrayPosition] = d0[((i + row) * N) + (j + column)];
-					d[arrayPosition] = d0[arrayPosition];
-					percentageU = 1 - (uPosition - row);
-					percentageV = 1 - (vPosition - column);
-
-					//densU = dens[]
-
-					//densU = d0[((i + row) * N) + (j + column)];
-				}
-				/*if ((uPosition >= 0 && uPosition <= N) && (vPosition >= 0 && vPosition <= N))
-				{
-					row = trunc(uPosition);
-					column = trunc(vPosition);
-					
-				}
-				else
-				{
-					//d[arrayPosition] = 0;
-				}*/
+				d[arrayPosition] = vInterpolation;
 			}
 		}
 		//      cout << endl;
 	}
-	//cout << endl << endl << endl << endl << endl << endl;
+	cout << endl << endl << endl << endl << endl << endl;
 }
 
 /*
@@ -440,16 +426,13 @@ void Solver::Project(float * u, float * v, float * p, float * div)
 {
 	int i, j;
 
-	// Calcular divergencia
 	FOR_EACH_CELL
 		div[XY_TO_ARRAY(i, j)] = -0.5f*(u[XY_TO_ARRAY(i + 1, j)] - u[XY_TO_ARRAY(i - 1, j)] + v[XY_TO_ARRAY(i, j + 1)] - v[XY_TO_ARRAY(i, j - 1)]) / N;
 		p[XY_TO_ARRAY(i, j)] = 0;
 	END_FOR
-	
 	SetBounds(0, div);
 	SetBounds(0, p);
 
-	//Resolver sistema
 	LinSolve(0, p, div, 1, 4);
 
 	//Aproximamos: Laplaciano de q a su gradiente.
@@ -457,6 +440,6 @@ void Solver::Project(float * u, float * v, float * p, float * div)
 		u[XY_TO_ARRAY(i, j)] -= 0.5f*N*(p[XY_TO_ARRAY(i + 1, j)] - p[XY_TO_ARRAY(i - 1, j)]);
 		v[XY_TO_ARRAY(i, j)] -= 0.5f*N*(p[XY_TO_ARRAY(i, j + 1)] - p[XY_TO_ARRAY(i, j - 1)]);
 	END_FOR
-		SetBounds(1, u);
+	SetBounds(1, u);
 	SetBounds(2, v);
 }
