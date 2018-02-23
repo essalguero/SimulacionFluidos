@@ -16,7 +16,7 @@ class Solver
 	float * u_prev, *v_prev, *dens_prev;
 
 public:
-	float * u, *v, *dens;
+	float * u, * v, * dens;
 	void Init(unsigned N, float dt, float diff, float visc);
 	void FreeData(void);
 	void ClearData(void);
@@ -31,18 +31,15 @@ private:
 
 	void AddSource(float * x, float * s);
 	void SetBounds(int b, float * x);
-	void LinSolve(int b, float * x, float * x0, float a, float c);
+	void LinSolve( int b, float * x, float * x0, float a, float c);
 	void Diffuse(int b, float * x, float * x0);
 	void Advect(int b, float * d, float * d0, float * u, float * v);
 	void Project(float * u, float * v, float * p, float * div);
 
-
-
-	void Solver::Advect__error(int b, float * d, float * d0, float * u, float * v);
-
 	// For testing only
 
 	// N number elements in row
+	//void LinSolve_test(int b, float * x, float * x0, float a, float c, int N);
 };
 
 #endif
