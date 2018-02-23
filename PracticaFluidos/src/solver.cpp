@@ -21,7 +21,7 @@ free/clear/allocate simulation data
 */
 void Solver::FreeData(void)
 {
-	//TODO: Libera los buffers de memoria.
+//TODO: Libera los buffers de memoria.
 	if (u_prev != 0)
 	{
 		free(u_prev);
@@ -31,7 +31,7 @@ void Solver::FreeData(void)
 	{
 		free(v_prev);
 	}
-
+	
 	if (dens_prev != 0)
 	{
 		free(dens_prev);
@@ -56,8 +56,8 @@ void Solver::FreeData(void)
 
 void Solver::ClearData(void)
 {
-	/*if (u_prev != 0 && v_prev != 0 && dens_prev != 0 &&
-	u != 0 && v != 0 && dens != 0)*/
+	/*if (u_prev != 0 && v_prev != 0 && dens_prev != 0 && 
+		u != 0 && v != 0 && dens != 0)*/
 	for (int i = 0; i < (N + 2) * (N + 2); ++i)
 	{
 		u_prev[i] = 0;
@@ -72,14 +72,14 @@ void Solver::ClearData(void)
 
 bool Solver::AllocateData(void)
 {
-	//TODO:
-	//Reservamos memoria, en caso de fallo devlvemos false.
-	//Antes de devolver true, hay que limpiar la memoria reservada con un ClearData().
+//TODO:
+//Reservamos memoria, en caso de fallo devlvemos false.
+//Antes de devolver true, hay que limpiar la memoria reservada con un ClearData().
 
-	if (!(u_prev = (float *)malloc((N + 2) * (N + 2) * sizeof(float))))
+	if (! (u_prev = (float *)malloc((N + 2) * (N + 2) * sizeof(float))) )
 		return false;
 
-	if (!(v_prev = (float *)malloc((N + 2) * (N + 2) * sizeof(float))))
+	if (! (v_prev = (float *)malloc((N + 2) * (N + 2) * sizeof(float))) )
 		return false;
 
 	if (!(dens_prev = (float *)malloc((N + 2) * (N + 2) * sizeof(float))))
@@ -93,16 +93,16 @@ bool Solver::AllocateData(void)
 
 	if (!(dens = (float *)malloc((N + 2) * (N + 2) * sizeof(float))))
 		return false;
-
+	
 	ClearData();
 
 	return true;
 
 }
 
-void Solver::ClearPrevData()
+void Solver::ClearPrevData() 
 {
-	//TODO: Borra el contenido de los buffers _prev
+//TODO: Borra el contenido de los buffers _prev
 
 	for (int i = 0; i < (N + 2) * (N + 2); ++i)
 	{
@@ -114,7 +114,7 @@ void Solver::ClearPrevData()
 
 void Solver::AddDensity(unsigned x, unsigned y, float source)
 {
-	//TODO: Añade el valor de source al array de densidades. Sería interesante usar la macro: XY_TO_ARRAY
+//TODO: Añade el valor de source al array de densidades. Sería interesante usar la macro: XY_TO_ARRAY
 
 	int position = XY_TO_ARRAY(x, y);
 
@@ -123,7 +123,7 @@ void Solver::AddDensity(unsigned x, unsigned y, float source)
 
 void Solver::AddVelocity(unsigned x, unsigned y, float forceX, float forceY)
 {
-	//TODO: Añade el valor de fuerza a sus respectivos arrays. Sería interesante usar la macro: XY_TO_ARRAY
+//TODO: Añade el valor de fuerza a sus respectivos arrays. Sería interesante usar la macro: XY_TO_ARRAY
 	int position = XY_TO_ARRAY(x, y);
 
 	u_prev[position] += forceX;
@@ -149,13 +149,13 @@ void Solver::VelStep()
 {
 	AddSource(u, u_prev);
 	AddSource(v, v_prev);
-	SWAP(u_prev, u)
-	SWAP(v_prev, v)
-	Diffuse(1, u, u_prev);
-	Diffuse(2, v, v_prev);
+	SWAP (u_prev,u)			
+	SWAP (v_prev, v)
+	Diffuse(1, u, u_prev);  
+	Diffuse(2, v, v_prev); 
 	Project(u, v, u_prev, v_prev);		//Mass conserving.
-	SWAP(u_prev, u)
-	SWAP(v_prev, v)
+	SWAP (u_prev,u)
+	SWAP (v_prev,v)
 	Advect(1, u, u_prev, u_prev, v_prev);
 	Advect(2, v, v_prev, u_prev, v_prev);
 	Project(u, v, u_prev, v_prev);		//Mass conserving.
@@ -163,34 +163,30 @@ void Solver::VelStep()
 
 void Solver::AddSource(float * base, float * source)
 {
-	//TODO: Teniendo en cuenta dt (Delta Time), incrementar el array base con nuestro source. Esto sirve tanto para añadir las nuevas densidades como las nuevas fuerzas.
+//TODO: Teniendo en cuenta dt (Delta Time), incrementar el array base con nuestro source. Esto sirve tanto para añadir las nuevas densidades como las nuevas fuerzas.
 	if (base != 0 && source != 0)
 	{
 		for (int i = 0; i < (N + 2) * (N + 2); ++i)
 		{
-		
+
 			/*if (source[i])
 				printf("Punto definido para depuracion\n");*/
-		
+
 			base[i] += source[i] * dt;
 		}
-
-		/*for (int i = 1; i <= N; ++i)
-			for (int j = 1; j <= N; ++j)
-				base[(i * N) + j] += source[(i * N) + j] * dt;*/
 	}
 }
 
 
 void Solver::SetBounds(int b, float * x)
 {
-	/*TODO:
-	Input b: 0, 1 or 2.
+/*TODO:
+Input b: 0, 1 or 2.
 	0: borders = same value than the inner value.
 	1: x axis borders inverted, y axis equal.
 	2: y axis borders inverted, x axis equal.
 	Corner values allways are mean value between associated edges.
-	*/
+*/
 	switch (b)
 	{
 	case 0:
@@ -263,13 +259,13 @@ Gauss Seidel -> Matrix x and x0
 */
 void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 {
-	//TODO: Se recomienda usar FOR_EACH_CELL, END_FOR y XY_TO_ARRAY.
+//TODO: Se recomienda usar FOR_EACH_CELL, END_FOR y XY_TO_ARRAY.
 
 	int i = 0;
 	int j = 0;
 	//int arrayPosition;
 
-	float sumaTerminos;
+    float sumaTerminos;
 
 	int k;
 	for (k = 0; k < NUMERO_ITERACIONES; k++)
@@ -281,35 +277,35 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 			//REVISAR FORMULA
 
 			/*float sumaTerminos = - x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)]
-			- x[XY_TO_ARRAY(i + 1, j)] - x[XY_TO_ARRAY(i, j + 1)];
+                                 - x[XY_TO_ARRAY(i + 1, j)] - x[XY_TO_ARRAY(i, j + 1)];
 
 
-
+        
 			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;*/
-
-			sumaTerminos = 0;
-
-			if (j > 0)
-				sumaTerminos -= x[XY_TO_ARRAY(i, j - 1)];
-
-			if (i > 0)
-				sumaTerminos -= x[XY_TO_ARRAY(i - 1, j)];
-
-			if (i < N)
-				sumaTerminos -= x[XY_TO_ARRAY(i + 1, j)];
-
-			if (j < N)
-				sumaTerminos -= x[XY_TO_ARRAY(i, j + 1)];
-
-
-			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;
-
-		END_FOR
+        
+            sumaTerminos = 0;
+        
+            if (j > 0)
+                sumaTerminos -= x[XY_TO_ARRAY(i, j - 1)];
+        
+            if (i > 0)
+                sumaTerminos -= x[XY_TO_ARRAY(i - 1, j)];
+        
+            if (i < N)
+                sumaTerminos -= x[XY_TO_ARRAY(i + 1, j)];
+        
+            if (j < N)
+                sumaTerminos -= x[XY_TO_ARRAY(i, j + 1)];
+        
+        
+            x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;
+		
+        END_FOR
 
 		SetBounds(b, x);
 	}
 
-
+	
 }
 
 /*
@@ -318,14 +314,14 @@ por lo que solo con la entrada de dos valores, debemos poder obtener el resultad
 */
 void Solver::Diffuse(int b, float * x, float * x0)
 {
-	//TODO: Solo necesitaremos pasar dos parámetros a nuestro resolutor de sistemas de ecuaciones de Gauss Seidel. Calculamos dichos valores y llamamos a la resolución del sistema.
-	// Done.
+//TODO: Solo necesitaremos pasar dos parámetros a nuestro resolutor de sistemas de ecuaciones de Gauss Seidel. Calculamos dichos valores y llamamos a la resolución del sistema.
+// Done.
 
 	float aij = this->diff * this->dt * this->N * this->N;
 	float aii = 1 + (4 * aij);
 
 
-
+	
 	LinSolve(b, x, x0, aij, aii);
 
 }
@@ -335,128 +331,85 @@ d is overwrited with the initial d0 data and affected by the u & v vectorfield.
 Hay que tener en cuenta que el centro de las casillas representa la posición entera dentro de la casilla, por lo que los bordes estan
 en las posiciones x,5.
 */
-void Solver::Advect__error(int b, float * d, float * d0, float * u, float * v)
-{
-	//TODO: Se aplica el campo vectorial realizando una interploación lineal entre las 4 casillas más cercanas donde caiga el nuevo valor.
-
-	int breakPoint = 0;
-	float uValue{ 0 };
-	float vValue{ 0 };
-	int arrayPosition;
-	int finalArrayPosition;
-
-	float u0Interpolation;
-	float u1Interpolation;
-	float vInterpolation;
-
-	float vPosition{ 0 };
-	float uPosition{ 0 };
-
-	int finalPositionU;
-	int finalPositionV;
-
-	float percentageLeft;
-	float percentageRight;
-	float percentageUp;
-	float percentageDown;
-
-	int integerUPosition;
-	int integerVPosition;
-
-	for (int i = 1; i <= N + 1; i++)
-	{
-		for (int j = 1; j <= N + 1; j++)
-		{
-	//int i, j;
-	//FOR_EACH_CELL
-			arrayPosition = (i * (N + 2)) + j;
-			//arrayPosition = XY_TO_ARRAY(j, i);
-
-			uValue = u[arrayPosition];
-			vValue = v[arrayPosition];
-
-			if (v[arrayPosition] > 0.01)
-				//cout << "Control point for debugging" << endl;
-
-			// Calcular la posicion del array para obtener los valores
-			uPosition = uValue * dt * N;
-			vPosition = vValue * dt * N;
-
-			// Invertimos el sentido del vector porque lo que queremos saber es desde donde se ha desplazado la densidad
-			// para interpolar su valor
-			uPosition *= -1;
-			vPosition *= -1;
-
-			integerUPosition = static_cast<int>(trunc(uPosition));
-			integerVPosition = static_cast<int>(trunc(vPosition));
-
-			// Posiciones de u y v que van a ser utilizadas para calcular los nuevos valores
-			finalPositionU = i + integerUPosition;
-			finalPositionV = j + integerVPosition;
-
-			// interpolar en horizontal -> u
-
-
-			finalArrayPosition = (finalPositionU * (N + 2)) + finalPositionV;
-
-
-			// If para controlar que no nos salgamos de los limites del array
-			//if (finalArrayPosition > 0 && finalArrayPosition < (N + 2) * (N + 2))
-			if (finalPositionU > 0 && finalPositionV > 0 && finalPositionU < (N + 1) && finalPositionV < (N + 1))
-			{
-
-				percentageLeft = 1 - (abs(uPosition - integerUPosition));
-				percentageRight = abs(uPosition - integerUPosition);
-
-				percentageUp = 1 - abs((vPosition - integerVPosition));
-				percentageDown = abs(vPosition - integerVPosition);
-
-				u0Interpolation = (d0[finalArrayPosition] * percentageLeft) + (d0[finalArrayPosition + 1] * percentageRight);
-				u1Interpolation = (d0[finalArrayPosition + N + 2] * percentageLeft) + (d0[finalArrayPosition + N + 2 + 1] * percentageRight);
-
-				vInterpolation = (u0Interpolation * percentageUp) + (u1Interpolation * percentageDown);
-
-				d[arrayPosition] = vInterpolation;
-				//d[XY_TO_ARRAY(j, i)] = vInterpolation;
-			}
-
-			
-			//END_FOR
-		}
-		//      cout << endl;
-	}
-	cout << endl << endl << endl << endl << endl << endl;
-}
-
-
-
 void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
 {
-	int i;
-	int j;
+    //TODO: Se aplica el campo vectorial realizando una interploación lineal entre las 4 casillas más cercanas donde caiga el nuevo valor.
 
-	float currentUValue;
-	float currentVValue;
-
-	float originUPosition;
-	float originVPosition;
-
-	int integerUPosition;
-	int integerVPosition;
-
-	FOR_EACH_CELL
-		d[XY_TO_ARRAY(i, j)] = d0[XY_TO_ARRAY(i, j)];
-
-		currentUValue = u[XY_TO_ARRAY(i, j)];
-		currentVValue = v[XY_TO_ARRAY(i, j)];
-
-		originUPosition = -(currentUValue * dt * N);
-		originVPosition = -(currentVValue * dt * N);
-
-		integerUPosition = static_cast<int>(trunc(originUPosition));
-		integerVPosition = static_cast<int>(trunc(originVPosition));
-
-	END_FOR
+    //Variables necesarias para realizar el bucle. Mirar definicion de macro FOR_EACH_CELL
+    int i;
+    int j;
+    
+    // Guardan el valor actual de la casilla donde se estan realizando los calculos
+    float currentUValue;
+    float currentVValue;
+    
+    //Guardan la posicion desde la que iniciar la interpolacion lineal
+    //Desde esta posicion (multiplicando por la velocidad, llegan los nuevos valores
+    float originUPosition;
+    float originVPosition;
+    
+    //Guardan valores enteros donde acceder a la matriz (para realizar la interpolacion)
+    int integerUPosition;
+    int integerVPosition;
+    
+    //Guardan el resto de la posicion. Estos valores se utilizan para hacer la ponderacion de los valores
+    //en la interpolacion del nuevo valor
+    float remainderUPosition;
+    float remainderVPosition;
+    
+    //Guardan valores intermedios de la interpolacion (los valores horizontales)
+    float u0Interpolation;
+    float u1Interpolation;
+    
+    // Se recorren todas las celdas del array
+    FOR_EACH_CELL
+    {
+        //Este if solamente se utiliza para poner Breakpoints y hacer debugging
+        //if (abs(d0[XY_TO_ARRAY(i, j)]) > 0.001)
+        //    cout << "";
+    
+        //Obtener los valores actuales de velocidades
+        currentUValue = u[XY_TO_ARRAY(i, j)];
+        currentVValue = v[XY_TO_ARRAY(i, j)];
+    
+        //Utilizando la velocidad, el tama–o del grid y delta time (dt) calcular la posicion desde
+        //la que hay que calcular el nuevo valor
+        originUPosition = i - (currentUValue * dt * N);
+        originVPosition = j - (currentVValue * dt * N);
+    
+        //Obtener valores enteros para poder acceder al array
+        integerUPosition = static_cast<int>(trunc(originUPosition));
+        integerVPosition = static_cast<int>(trunc(originVPosition));
+    
+        //Los valores fraccionarios se deben guardar para realizar la interpolacion lineal del nuevo valor
+        //Usado para calcular la ponderacion de las celdas de la pantalla al calcular el nuevo valor
+        remainderUPosition = abs(originUPosition - integerUPosition);
+        remainderVPosition = abs(originVPosition - integerVPosition);
+        
+        //Comprobar si las posiciones a utilizar para los calculos estan dentro del array
+        //Si estan dentro del array se hace una interpolacion para calcular el nuevo valor
+        if (integerUPosition > 0 && integerUPosition < N && integerVPosition > 0 && integerVPosition < N)
+        {
+            // Valor de interpolacion de 2 casillas en horizontal -> Las dos casillas superiores
+            u0Interpolation = (d0[XY_TO_ARRAY(integerUPosition, integerVPosition)] * (1 - remainderUPosition)) +
+                              (d0[XY_TO_ARRAY(integerUPosition + 1, integerVPosition)] * remainderUPosition);
+            
+            // Valor de interpolacion de 2 casillas en horizontal -> Las dos casillas inferiores
+            u1Interpolation = (d0[XY_TO_ARRAY(integerUPosition, integerVPosition + 1)] * (1 - remainderUPosition)) +
+                              (d0[XY_TO_ARRAY(integerUPosition + 1, integerVPosition + 1)] * remainderUPosition);
+        
+            // Valor de interpolacion de las casillas en vertical -> Calculado sobre las interpolaciones anteriores
+            d[XY_TO_ARRAY(i, j)] = (u0Interpolation * (1 - remainderVPosition)) + (u1Interpolation * remainderVPosition);
+        }
+        else
+        {
+            //Si alguna de las posiciones calculadas estan fuera del grid, se pone el valor 0 como nuevo valor
+            //No se puede realizar otro calculo al no tener conocimiento de valores externos al grid
+            d[XY_TO_ARRAY(i, j)] = 0;
+        }
+    
+    }
+    END_FOR
 }
 
 
