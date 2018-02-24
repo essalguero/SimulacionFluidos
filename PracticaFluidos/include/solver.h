@@ -40,6 +40,9 @@ private:
 
 	// N number elements in row
 	//void LinSolve_test(int b, float * x, float * x0, float a, float c, int N);
+
+	void Jacobi(int b, float * x, float * x0);
+
 };
 
 #endif

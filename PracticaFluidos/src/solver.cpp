@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <math.h>
-
+#include <string>
 using namespace std;
 
 void Solver::Init(unsigned N, float dt, float diff, float visc)
@@ -251,6 +251,37 @@ Input b: 0, 1 or 2.
 	}
 }
 
+
+
+void Solver::Jacobi(int b, float * x, float * x0)
+{
+	float *result = (float *)malloc(sizeof(float) * (N + 2) * (N + 2));
+
+
+	for (int iter = 0; iter < NUMERO_ITERACIONES; ++iter)
+	{
+		for (int i = 0; i < N + 2; ++i)
+
+			for (int j = 0; j < N + 2; ++j)
+			{
+				result[XY_TO_ARRAY(i, j)] = 0;
+				for (int k = 0; k < N + 2; ++k)
+					result[XY_TO_ARRAY(i, j)] += x[XY_TO_ARRAY(i, k)] * x0[XY_TO_ARRAY(k, j)];
+			}
+
+
+		memccpy(x0, x, (N + 2) * (N + 2), sizeof(float));
+		memccpy(x, result, (N + 2) * (N + 2), sizeof(float));
+
+		//SWAP(result, x);
+		//SWAP(x0, result);
+
+
+		SetBounds(b, x);
+	}
+	free(result);
+}
+
 /*
 https://www.youtube.com/watch?v=62_RUX_hrT4
 https://es.wikipedia.org/wiki/M%C3%A9todo_de_Gauss-Seidel <- Solución de valores independientes.
@@ -322,8 +353,8 @@ void Solver::Diffuse(int b, float * x, float * x0)
 
 
 	
-	LinSolve(b, x, x0, aij, aii);
-
+	//LinSolve(b, x, x0, aij, aii);
+	Jacobi(b, x, x0);
 }
 
 /*
