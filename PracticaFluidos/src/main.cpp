@@ -127,16 +127,10 @@ static void DrawVelocity(void)
 
 }
 
-static void DrawDensity(void)
+/*static void DrawDensity(void)
 {
-	//int i, j;
-
 
 	float h = 1 / (double)(N + 2);
-
-
-	//int altoCelda = win_y / N;
-	//int anchoCelda = win_x / N;
 
 	float x, y;
 
@@ -147,22 +141,6 @@ static void DrawDensity(void)
 	float endY;
 
 	int arrayPosition;
-
-	// Calcular las casillas hechas por Jesus
-
-	/*for (i = 0; i <= N; i++)
-	{
-	x = (i - 0.5f) * h;
-
-	for (j = 0; j <= N; j++) {
-	y = (j - 0.5) * h;
-
-	d00 = solver.dens[XY_TO_ARRAY(i, j)];
-	d01 = solver.dens[XY_TO_ARRAY(i, j + 1)];
-	...
-	}
-	}*/
-
 
 	glBegin(GL_QUADS);
 
@@ -182,6 +160,96 @@ static void DrawDensity(void)
 		}
 	}
 
+	glEnd();
+
+}*/
+
+static void DrawDensity(void)
+{
+	//int i, j;
+
+
+	float h { 1 / (float)(N + 2) };
+
+
+	//int altoCelda = win_y / N;
+	//int anchoCelda = win_x / N;
+
+	float x, y;
+
+	float initX;
+	float initY;
+
+	float endX;
+	float endY;
+
+	//int arrayPosition;
+
+	// Calcular las casillas hechas por Jesus
+
+	//for (i = 0; i <= N; i++)
+	//{
+	//x = (i - 0.5f) * h;
+	//
+	//for (j = 0; j <= N; j++) {
+	//y = (j - 0.5) * h;
+	//
+	//d00 = solver.dens[XY_TO_ARRAY(i, j)];
+	//d01 = solver.dens[XY_TO_ARRAY(i, j + 1)];
+	//...
+	//}
+	//}
+
+	int i, j;
+
+	glBegin(GL_QUADS);
+
+	//for (int i = 0; i <= N; ++i)
+	//{
+	//for (int j = 0; j <= N; ++j)
+	//{
+	FOR_EACH_CELL
+	{
+		//arrayPosition = XY_TO_ARRAY(i, j);
+		float arribaIzquierda { solver.dens[XY_TO_ARRAY(i - 1, j - 1)] };
+
+		float izquierda{ solver.dens[XY_TO_ARRAY(i, j - 1)] };
+
+		float derecha{ solver.dens[XY_TO_ARRAY(i, j + 1)] };
+
+		float arribaDerecha{ solver.dens[XY_TO_ARRAY(i - 1, j + 1)] };
+
+		float arriba{ solver.dens[XY_TO_ARRAY(i - 1, j)] };
+		float abajo{ solver.dens[XY_TO_ARRAY(i + 1, j)] };
+
+		float actual{ solver.dens[XY_TO_ARRAY(i, j)] };
+
+		float abajoIzquierda{ solver.dens[XY_TO_ARRAY(i + 1, j - 1)] };
+		float abajoDerecha{ solver.dens[XY_TO_ARRAY(i + 1, j + 1)] };
+
+		float valor{ (actual + arriba + izquierda + arribaIzquierda) / 4 };
+
+	
+		glColor3f(valor, valor, valor);
+		glVertex2f((i - 0.5f) * h, (j - 0.5f) * h);
+	
+	
+		valor = (actual + arriba + derecha + arribaDerecha) / 4;
+		glColor3f(valor, valor, valor);
+		glVertex2f((i - 0.5f) * h, (j + 0.5f) * h);
+
+	
+		valor = (actual + abajo + derecha + abajoDerecha) / 4;
+		glColor3f(valor, valor, valor);
+		glVertex2f((i + 0.5f) * h, (j + 0.5f) * h);
+
+	
+		valor = (actual + abajo + izquierda + abajoIzquierda) / 4;
+		glColor3f(valor, valor, valor);
+		glVertex2f((i + 0.5f) * h, (j - 0.5f) * h);
+	
+	}
+	END_FOR
 	glEnd();
 
 }

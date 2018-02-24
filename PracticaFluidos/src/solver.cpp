@@ -353,8 +353,8 @@ void Solver::Diffuse(int b, float * x, float * x0)
 
 
 	
-	//LinSolve(b, x, x0, aij, aii);
-	Jacobi(b, x, x0);
+	LinSolve(b, x, x0, aij, aii);
+	//Jacobi(b, x, x0);
 }
 
 /*
