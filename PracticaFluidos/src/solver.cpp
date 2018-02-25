@@ -253,33 +253,86 @@ Input b: 0, 1 or 2.
 
 
 
-void Solver::Jacobi(int b, float * x, float * x0)
+float * Solver::MultMat(float * m1, float * m2, int rows)
 {
+	float *result = (float *)malloc(sizeof(float) * rows * rows);
+
+	for (int i = 0; i < rows; ++i)
+	{
+		for (int j = 0; j < rows; ++j)
+		{
+			result[XY_TO_ARRAY(i, j)] = 0;
+			for (int k = 0; k < rows; ++k)
+			{
+				result[XY_TO_ARRAY(i, j)] += m1[XY_TO_ARRAY(i, k)] * m2[XY_TO_ARRAY(k, j)];
+			}
+		}
+	}
+
+	return result;
+}
+
+// Jacovi es similar a Gauss-Seidel, excepto en que en Gauss-Seidel, en la misma iteración se
+// empiezan a utilizar los valores ya calculados y en Jacobi no se usan hasta la siguiente iteración
+void Solver::Jacobi(int b, float * x, float * x0, float aij, float aii)
+{
+	
+	int i = 0;
+	int j = 0;
+	//int arrayPosition;
+
+
 	float *result = (float *)malloc(sizeof(float) * (N + 2) * (N + 2));
 
+	float sumaTerminos;
 
-	for (int iter = 0; iter < NUMERO_ITERACIONES; ++iter)
+	int k;
+	for (k = 0; k < NUMERO_ITERACIONES; k++)
 	{
-		for (int i = 0; i < N + 2; ++i)
+		FOR_EACH_CELL
+		{
+			//arrayPosition = XY_TO_ARRAY(i, j);
 
-			for (int j = 0; j < N + 2; ++j)
-			{
-				result[XY_TO_ARRAY(i, j)] = 0;
-				for (int k = 0; k < N + 2; ++k)
-					result[XY_TO_ARRAY(i, j)] += x[XY_TO_ARRAY(i, k)] * x0[XY_TO_ARRAY(k, j)];
-			}
+
+			//REVISAR FORMULA
+
+			/*float sumaTerminos = - x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)]
+			- x[XY_TO_ARRAY(i + 1, j)] - x[XY_TO_ARRAY(i, j + 1)];
+
+
+
+			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;*/
+
+			
+
+			sumaTerminos = 0;
+
+			if (j > 0)
+				sumaTerminos -= x0[XY_TO_ARRAY(i, j - 1)];
+
+			if (i > 0)
+				sumaTerminos -= x0[XY_TO_ARRAY(i - 1, j)];
+
+			if (i < N)
+				sumaTerminos -= x0[XY_TO_ARRAY(i + 1, j)];
+
+			if (j < N)
+				sumaTerminos -= x0[XY_TO_ARRAY(i, j + 1)];
+
+
+			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;
+		}
+		END_FOR
+
+
 
 
 		memccpy(x0, x, (N + 2) * (N + 2), sizeof(float));
-		memccpy(x, result, (N + 2) * (N + 2), sizeof(float));
-
-		//SWAP(result, x);
-		//SWAP(x0, result);
-
+		
 
 		SetBounds(b, x);
 	}
-	free(result);
+
 }
 
 /*
@@ -353,8 +406,8 @@ void Solver::Diffuse(int b, float * x, float * x0)
 
 
 	
-	LinSolve(b, x, x0, aij, aii);
-	//Jacobi(b, x, x0);
+	//LinSolve(b, x, x0, aij, aii);
+	Jacobi(b, x, x0, aij, aii);
 }
 
 /*
