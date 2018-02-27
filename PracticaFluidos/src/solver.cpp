@@ -58,8 +58,7 @@ void Solver::FreeData(void)
 
 void Solver::ClearData(void)
 {
-	/*if (u_prev != 0 && v_prev != 0 && dens_prev != 0 &&
-	u != 0 && v != 0 && dens != 0)*/
+
 	for (int i = 0; i < (N + 2) * (N + 2); ++i)
 	{
 		u_prev[i] = 0;
@@ -116,7 +115,7 @@ void Solver::ClearPrevData()
 
 void Solver::AddDensity(unsigned x, unsigned y, float source)
 {
-	//TODO: Añade el valor de source al array de densidades. Sería interesante usar la macro: XY_TO_ARRAY
+	//TODO: Añade el valor de source al array de densidades. SerÃ­a interesante usar la macro: XY_TO_ARRAY
 
 	int position = XY_TO_ARRAY(x, y);
 
@@ -125,7 +124,7 @@ void Solver::AddDensity(unsigned x, unsigned y, float source)
 
 void Solver::AddVelocity(unsigned x, unsigned y, float forceX, float forceY)
 {
-	//TODO: Añade el valor de fuerza a sus respectivos arrays. Sería interesante usar la macro: XY_TO_ARRAY
+	//TODO: Añade el valor de fuerza a sus respectivos arrays. SerÃ­a interesante usar la macro: XY_TO_ARRAY
 	int position = XY_TO_ARRAY(x, y);
 
 	u_prev[position] += forceX;
@@ -165,20 +164,19 @@ void Solver::VelStep()
 
 void Solver::AddSource(float * base, float * source)
 {
-	//TODO: Teniendo en cuenta dt (Delta Time), incrementar el array base con nuestro source. Esto sirve tanto para añadir las nuevas densidades como las nuevas fuerzas.
+	//TODO: Teniendo en cuenta dt (Delta Time), incrementar el array base con nuestro source. Esto sirve tanto para aÃ±adir las nuevas densidades como las nuevas fuerzas.
+	
+	int i, j;
+
 	if (base != 0 && source != 0)
 	{
-		for (int i = 0; i < (N + 2) * (N + 2); ++i)
+		FOR_EACH_CELL
 		{
-
-			/*if (source[i])
-			printf("Punto definido para depuracion\n");*/
-
-			base[i] += source[i] * dt;
+			base[XY_TO_ARRAY(i, j)] += source[XY_TO_ARRAY(i, j)] * dt;
 		}
+		END_FOR
 	}
 }
-
 
 void Solver::SetBounds(int b, float * x)
 {
@@ -200,7 +198,7 @@ void Solver::SetBounds(int b, float * x)
 
 		for (int i = N + 1; i < (N * N); i += (N + 2))
 		{
-			x[i] = x[i + 1];
+			x[i] = x[i - 1];
 		}
 
 		// inicializar verticales
@@ -220,7 +218,7 @@ void Solver::SetBounds(int b, float * x)
 
 		for (int i = N + 1; i < (N * N); i += (N + 2))
 		{
-			x[i] = -(x[i + 1]);
+			x[i] = -(x[i - 1]);
 		}
 
 		// inicializar verticales
@@ -240,7 +238,7 @@ void Solver::SetBounds(int b, float * x)
 
 		for (int i = N + 1; i < (N * N); i += (N + 2))
 		{
-			x[i] = x[i + 1];
+			x[i] = x[i - 1];
 		}
 
 		// inicializar verticales
@@ -254,100 +252,55 @@ void Solver::SetBounds(int b, float * x)
 }
 
 
-
-/*float * Solver::MultMat(float * m1, float * m2, int rows)
-{
-	float *result = (float *)malloc(sizeof(float) * rows * rows);
-
-	for (int i = 0; i < rows; ++i)
-	{
-		for (int j = 0; j < rows; ++j)
-		{
-			result[XY_TO_ARRAY(i, j)] = 0;
-			for (int k = 0; k < rows; ++k)
-			{
-				result[XY_TO_ARRAY(i, j)] += m1[XY_TO_ARRAY(i, k)] * m2[XY_TO_ARRAY(k, j)];
-			}
-		}
-	}
-
-	return result;
-}*/
-
-// Jacovi es similar a Gauss-Seidel, excepto en que en Gauss-Seidel, en la misma iteración se
+// Jacobi es similar a Gauss-Seidel, excepto en que en Gauss-Seidel, en la misma iteración se
 // empiezan a utilizar los valores ya calculados y en Jacobi no se usan hasta la siguiente iteración
 void Solver::Jacobi(int b, float * x, float * x0, float aij, float aii)
 {
 
 	int i = 0;
 	int j = 0;
-	//int arrayPosition;
 
-	bool seguirIterando{ true };
 
-	//float *result = (float *)malloc(sizeof(float) * (N + 2) * (N + 2));
-	//float * checker = (float *)malloc(sizeof(float) * (N + 2) * (N + 2));
+	float *result = (float *)malloc(sizeof(float) * (N + 2) * (N + 2));
 
 	float sumaTerminos;
 
 	int k;
-	for (k = 0; k < NUMERO_ITERACIONES && seguirIterando; ++k)
+	for (k = 0; k < NUMERO_ITERACIONES; k++)
 	{
-		//seguirIterando = false;
 		FOR_EACH_CELL
 		{
-			//arrayPosition = XY_TO_ARRAY(i, j);
-
-
-			//REVISAR FORMULA
-
-			/*float sumaTerminos = - x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)]
-			- x[XY_TO_ARRAY(i + 1, j)] - x[XY_TO_ARRAY(i, j + 1)];
-			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;*/
-
-
 
 			sumaTerminos = 0;
 
-			if (j > 0)
-				sumaTerminos -= x0[XY_TO_ARRAY(i, j - 1)];
+			sumaTerminos -= x0[XY_TO_ARRAY(i, j - 1)];
 
-			if (i > 0)
-				sumaTerminos -= x0[XY_TO_ARRAY(i - 1, j)];
+			sumaTerminos -= x0[XY_TO_ARRAY(i - 1, j)];
 
-			if (i < N)
-				sumaTerminos -= x0[XY_TO_ARRAY(i + 1, j)];
+			sumaTerminos -= x0[XY_TO_ARRAY(i + 1, j)];
 
-			if (j < N)
-				sumaTerminos -= x0[XY_TO_ARRAY(i, j + 1)];
+			sumaTerminos -= x0[XY_TO_ARRAY(i, j + 1)];
 
 
 			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;
-
-			/*int position = XY_TO_ARRAY(i, j);
-			float result = x[position] - x0[position];
-			if (abs(result) > PRECISION)
-				seguirIterando = true;*/
 		}
 		END_FOR
 
-		//numeroIteraciones = k;
+
+		numeroIteraciones = k + 1;
+
+		SetBounds(b, x);
 
 		memccpy(x0, x, (N + 2) * (N + 2), sizeof(float));
 
-
-		SetBounds(b, x);
 	}
-
-
-	//free(result);
-
+	free(result);
 }
 
 /*
 https://www.youtube.com/watch?v=62_RUX_hrT4
-https://es.wikipedia.org/wiki/M%C3%A9todo_de_Gauss-Seidel <- Solución de valores independientes.
-Despreciando posibles valores de x no contiguos, se simplifica mucho. Mirar diapositivas y la solución de Gauss Seidel de términos independientes.
+https://es.wikipedia.org/wiki/M%C3%A9todo_de_Gauss-Seidel <- SoluciÃ³n de valores independientes.
+Despreciando posibles valores de x no contiguos, se simplifica mucho. Mirar diapositivas y la soluciÃ³n de Gauss Seidel de tÃ©rminos independientes.
 Gauss Seidel -> Matrix x and x0
 */
 void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
@@ -356,70 +309,50 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 
 	int i = 0;
 	int j = 0;
-	//int arrayPosition;
 
 	float sumaTerminos;
 
-	bool seguirIterando{ true };
 
 	int k;
-	for (k = 0; k < NUMERO_ITERACIONES && seguirIterando; ++k)
+	for (k = 0; k < NUMERO_ITERACIONES; k++)
 	{
-		//seguirIterando = false;
+
 		FOR_EACH_CELL
 		{
-			//arrayPosition = XY_TO_ARRAY(i, j);
-
-
-			//REVISAR FORMULA
-
-			/*float sumaTerminos = - x[XY_TO_ARRAY(i, j - 1)] - x[XY_TO_ARRAY(i - 1, j)]
-			- x[XY_TO_ARRAY(i + 1, j)] - x[XY_TO_ARRAY(i, j + 1)];
-
-			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;*/
 
 			sumaTerminos = 0;
 
-			if (j > 0)
-				sumaTerminos -= x[XY_TO_ARRAY(i, j - 1)];
+			sumaTerminos -= x[XY_TO_ARRAY(i, j - 1)];
 
-			if (i > 0)
-				sumaTerminos -= x[XY_TO_ARRAY(i - 1, j)];
+			sumaTerminos -= x[XY_TO_ARRAY(i - 1, j)];
 
-			if (i < N)
-				sumaTerminos -= x[XY_TO_ARRAY(i + 1, j)];
+			sumaTerminos -= x[XY_TO_ARRAY(i + 1, j)];
 
-			if (j < N)
-				sumaTerminos -= x[XY_TO_ARRAY(i, j + 1)];
+			sumaTerminos -= x[XY_TO_ARRAY(i, j + 1)];
 
 
 			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]) / aii;
 
-
-			/*int position = XY_TO_ARRAY(i, j);
-			float result = x[position] - x0[position];
-			if (abs(result) > PRECISION)
-				seguirIterando = true;*/
-
-
 		}
 		END_FOR
 
-		//numeroIteraciones = k;
-
 		SetBounds(b, x);
+
+		numeroIteraciones = k + 1;
+
+		memccpy(x0, x, (N + 2) * (N + 2), sizeof(float));
 	}
 
 
 }
 
 /*
-Nuestra función de difusión solo debe resolver el sistema de ecuaciones simplificado a las celdas contiguas de la casilla que queremos resolver,
+Nuestra funciÃ³n de difusiÃ³n solo debe resolver el sistema de ecuaciones simplificado a las celdas contiguas de la casilla que queremos resolver,
 por lo que solo con la entrada de dos valores, debemos poder obtener el resultado.
 */
 void Solver::Diffuse(int b, float * x, float * x0)
 {
-	//TODO: Solo necesitaremos pasar dos parámetros a nuestro resolutor de sistemas de ecuaciones de Gauss Seidel. Calculamos dichos valores y llamamos a la resolución del sistema.
+	//TODO: Solo necesitaremos pasar dos parÃ¡metros a nuestro resolutor de sistemas de ecuaciones de Gauss Seidel. Calculamos dichos valores y llamamos a la resoluciÃ³n del sistema.
 	// Done.
 
 	float aij = this->diff * this->dt * this->N * this->N;
@@ -438,12 +371,12 @@ void Solver::Diffuse(int b, float * x, float * x0)
 
 /*
 d is overwrited with the initial d0 data and affected by the u & v vectorfield.
-Hay que tener en cuenta que el centro de las casillas representa la posición entera dentro de la casilla, por lo que los bordes estan
+Hay que tener en cuenta que el centro de las casillas representa la posiciÃ³n entera dentro de la casilla, por lo que los bordes estan
 en las posiciones x,5.
 */
 void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
 {
-	//TODO: Se aplica el campo vectorial realizando una interploación lineal entre las 4 casillas más cercanas donde caiga el nuevo valor.
+	//TODO: Se aplica el campo vectorial realizando una interploaciÃ³n lineal entre las 4 casillas mÃ¡s cercanas donde caiga el nuevo valor.
 
 	//Variables necesarias para realizar el bucle. Mirar definicion de macro FOR_EACH_CELL
 	int i;
@@ -474,15 +407,11 @@ void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
 	// Se recorren todas las celdas del array
 	FOR_EACH_CELL
 	{
-		//Este if solamente se utiliza para poner Breakpoints y hacer debugging
-		//if (abs(d0[XY_TO_ARRAY(i, j)]) > 0.001)
-		//    cout << "";
-
 		//Obtener los valores actuales de velocidades
 		currentUValue = u[XY_TO_ARRAY(i, j)];
 		currentVValue = v[XY_TO_ARRAY(i, j)];
 
-		//Utilizando la velocidad, el tamao del grid y delta time (dt) calcular la posicion desde
+		//Utilizando la velocidad, el tamaÂ–o del grid y delta time (dt) calcular la posicion desde
 		//la que hay que calcular el nuevo valor
 		originUPosition = i - (currentUValue * dt * N);
 		originVPosition = j - (currentVValue * dt * N);
@@ -498,15 +427,15 @@ void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
 
 		//Comprobar si las posiciones a utilizar para los calculos estan dentro del array
 		//Si estan dentro del array se hace una interpolacion para calcular el nuevo valor
-		if (integerUPosition > 0 && integerUPosition < N && integerVPosition > 0 && integerVPosition < N)
+		if (integerUPosition > 1 && integerUPosition < N + 1 && integerVPosition > 1 && integerVPosition < N + 1)
 		{
 			// Valor de interpolacion de 2 casillas en horizontal -> Las dos casillas superiores
 			u0Interpolation = (d0[XY_TO_ARRAY(integerUPosition, integerVPosition)] * (1 - remainderUPosition)) +
-				(d0[XY_TO_ARRAY(integerUPosition + 1, integerVPosition)] * remainderUPosition);
+								(d0[XY_TO_ARRAY(integerUPosition + 1, integerVPosition)] * remainderUPosition);
 
 			// Valor de interpolacion de 2 casillas en horizontal -> Las dos casillas inferiores
 			u1Interpolation = (d0[XY_TO_ARRAY(integerUPosition, integerVPosition + 1)] * (1 - remainderUPosition)) +
-				(d0[XY_TO_ARRAY(integerUPosition + 1, integerVPosition + 1)] * remainderUPosition);
+								(d0[XY_TO_ARRAY(integerUPosition + 1, integerVPosition + 1)] * remainderUPosition);
 
 			// Valor de interpolacion de las casillas en vertical -> Calculado sobre las interpolaciones anteriores
 			d[XY_TO_ARRAY(i, j)] = (u0Interpolation * (1 - remainderVPosition)) + (u1Interpolation * remainderVPosition);
@@ -526,7 +455,7 @@ void Solver::Advect(int b, float * d, float * d0, float * u, float * v)
 
 /*
 Se encarga de estabilizar el fluido y hacerlo conservativo de masa. Se usa solo en las matrices de velocidades.
-No necesaria implementación por su complejidad.
+No necesaria implementaciÃ³n por su complejidad.
 */
 void Solver::Project(float * u, float * v, float * p, float * div)
 {

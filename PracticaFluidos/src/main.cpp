@@ -7,6 +7,8 @@
 #include <string>
 #include <time.h>
 
+#include <iostream>
+
 /* global variables */
 static int N; // Numero de celdas en la pantalla
 static float dt, diff, visc;
@@ -20,20 +22,25 @@ static int omx, omy, mx, my;
 
 static Solver solver;
 
-using namespace std;
 
+// Set of variables to show as 'information' in the screen
 char* sJacobi = "Using Jacobi method";
-
 char* sGauss = "Using Gauss-Seidel method";
-
 char* sMethod = sGauss;
 
+char* sVelocity = "Velocity View";
+char* sDensity = "Density View";
+char* sView = sDensity;
 
-//time_t lastRenderTime{0};
-//double lastRenderTimeSeconds{0};
 int framesPerSecond{ 0 };
 
+bool displayInfo{ true };
 
+
+using namespace std;
+
+// This function writes a string using glut functions
+// It has been obtained from Internet
 void renderBitmapString(float x, float y, void *font, const char *string) {
 	const char *c;
 	glRasterPos2f(x, y);
@@ -44,20 +51,6 @@ void renderBitmapString(float x, float y, void *font, const char *string) {
 	}
 }
 
-/*void drawStrokeText(char* string,int x,int y,int z)
-{
-char *c;
-char empty = '\0';
-glPushMatrix();
-glTranslatef(x, y+8,z);
-glScalef(0.09f,-0.08f,z);
-
-for (c=string; *c != empty; c++)
-{
-glutStrokeCharacter(GLUT_STROKE_ROMAN , *c);
-}
-glPopMatrix();
-}*/
 
 /*
 ----------------------------------------------------------------------
@@ -84,41 +77,31 @@ void resetPerspectiveProjection() {
 }
 
 
+// This function is in charge of displaying execution information in the OpenGL window
 static void displayText() {
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	
 	string stringFPS = to_string(framesPerSecond) + " FPS";
-
 	const char * charFPS = stringFPS.c_str();
 
-	//string stringIteraciones = "Numero de Iteraciones: " + to_string(solver.getNumeroIteraciones());
-	//const char * charIteraciones = stringIteraciones.c_str();
-
-	
+	string stringIteraciones = "Numero de Iteraciones: " + to_string(solver.getNumeroIteraciones());
+	const char * charIteraciones = stringIteraciones.c_str();
 
 	glColor3d(0.5, 0.5, 1.0);
 	setOrthographicProjection();
 	glPushMatrix();
 	glLoadIdentity();
-	renderBitmapString(20, win_y - 40, (void *)GLUT_BITMAP_9_BY_15, sMethod);
-	//renderBitmapString(20, win_y - 40, (void *)GLUT_BITMAP_9_BY_15, charIteraciones);
+	renderBitmapString(20, win_y - 60, (void *)GLUT_BITMAP_9_BY_15, sMethod);
+	renderBitmapString(20, win_y - 40, (void *)GLUT_BITMAP_9_BY_15, charIteraciones);
+	renderBitmapString(win_x - 140, win_y - 40, (void *)GLUT_BITMAP_9_BY_15, sView);
 	renderBitmapString(20, win_y - 20, (void *)GLUT_BITMAP_9_BY_15, charFPS);
 	glPopMatrix();
 	resetPerspectiveProjection();
-	//glutSwapBuffers();
 }
+
 
 static void PreDisplay(void)
 {
-	/*glViewport(0, 0, win_x, win_y);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);*/
-
-
-
+	
 	glViewport(0, 0, win_x, win_y);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -132,8 +115,11 @@ static void PreDisplay(void)
 
 static void PostDisplay(void)
 {
-	displayText();
+	// If the option is active, show 'execution' info in the screen
+	if (displayInfo)
+		displayText();
 
+	// Send the command to display the image
 	glutSwapBuffers();
 }
 
@@ -154,41 +140,11 @@ static void DrawVelocity(void)
 	int altoCelda = win_y / N;
 	int anchoCelda = win_x / N;
 
-	float x, y;
-
-	float initX;
-	float initY;
-
-	float endX;
-	float endY;
-
-	int arrayPosition;
 
 	float h = 1 / (double)(N + 2);
 
-	// Calcular las casillas hechas por Jesus
-
-	/*for (i = 0; i <= N; i++)
-	{
-	x = (i - 0.5f) * h;
-	for (j = 0; j <= N; j++) {
-	y = (j - 0.5) * h;
-	d00 = solver.dens[XY_TO_ARRAY(i, j)];
-	d01 = solver.dens[XY_TO_ARRAY(i, j + 1)];
-	...
-	}
-	}*/
-
-	/*for (i = 0; i <= N; i++)
-	{
-	x = (i - 0.5f) * altoCelda;
-	for (j = 0; j <= N; j++) {
-	y = (j - 0.5) * altoCelda;
-	}
-	}*/
-
+	
 	glLineWidth(1.0f);
-
 
 	float xPosOrig;
 	float yPosOrig;
@@ -198,57 +154,31 @@ static void DrawVelocity(void)
 	glBegin(GL_LINES);
 
 
-	for (int i = 1; i < N + 1; i++)
+	FOR_EACH_CELL
 	{
 		xPosOrig = (i - 0.5f) * h;
+		yPosOrig = (j - 0.5f) * h;
 
-		for (int j = 1; j < N + 1; ++j)
-		{
+		int arrayPosition = XY_TO_ARRAY(i, j);
 
-			yPosOrig = (j - 0.5f) * h;
+		xPosEnd = xPosOrig + solver.u[XY_TO_ARRAY(i, j)];
+		yPosEnd = yPosOrig + solver.v[XY_TO_ARRAY(i, j)];
 
-			xPosEnd = xPosOrig + solver.u[XY_TO_ARRAY(i, j)];
-			yPosEnd = yPosOrig + solver.v[XY_TO_ARRAY(i, j)];
+		glColor3f(abs(20.0f * ((xPosEnd - xPosOrig))), abs(20.0f * ((yPosEnd - yPosOrig))), 0.0f);
 
-			glColor3f(abs(255.0f * (xPosEnd - xPosOrig)), abs(255.0f * (yPosEnd - yPosOrig)), 0.0f);
-			//glColor3f(255.0f * abs(static_cast<int>(xPosEnd - xPosOrig)), 255.0f * abs(static_cast<int>(yPosEnd - yPosOrig)), 0.0f);
-
-			glVertex2f(xPosOrig, yPosOrig);
-
-			glVertex2f(xPosEnd, yPosEnd);
+		glVertex2f(xPosOrig, yPosOrig);
 
 
-		}
+		glVertex2f(xPosEnd, yPosEnd);
+
 	}
+	END_FOR
+
 
 	glEnd();
 
 }
 
-/*static void DrawDensity(void)
-{
-float h = 1 / (double)(N + 2);
-float x, y;
-float initX;
-float initY;
-float endX;
-float endY;
-int arrayPosition;
-glBegin(GL_QUADS);
-for (int i = 0; i <= N; ++i)
-{
-for (int j = 0; j <= N; ++j)
-{
-arrayPosition = XY_TO_ARRAY(i, j);
-glColor3f(solver.dens[arrayPosition], solver.dens[arrayPosition], solver.dens[arrayPosition]);
-glVertex2f((i - 0.5f) * h, (j - 0.5f) * h);
-glVertex2f((i - 0.5f) * h, (j + 0.5f) * h);
-glVertex2f((i + 0.5f) * h, (j + 0.5f) * h);
-glVertex2f((i + 0.5f) * h, (j - 0.5f) * h);
-}
-}
-glEnd();
-}*/
 
 static void DrawDensity(void)
 {
@@ -258,45 +188,16 @@ static void DrawDensity(void)
 	float h{ 1 / (float)(N + 2) };
 
 
-	//int altoCelda = win_y / N;
-	//int anchoCelda = win_x / N;
-
-	float x, y;
-
-	float initX;
-	float initY;
-
-	float endX;
-	float endY;
-
-	//int arrayPosition;
-
-	// Calcular las casillas hechas por Jesus
-
-	//for (i = 0; i <= N; i++)
-	//{
-	//x = (i - 0.5f) * h;
-	//
-	//for (j = 0; j <= N; j++) {
-	//y = (j - 0.5) * h;
-	//
-	//d00 = solver.dens[XY_TO_ARRAY(i, j)];
-	//d01 = solver.dens[XY_TO_ARRAY(i, j + 1)];
-	//...
-	//}
-	//}
+	
 
 	int i, j;
 
 	glBegin(GL_QUADS);
 
-	//for (int i = 0; i <= N; ++i)
-	//{
-	//for (int j = 0; j <= N; ++j)
-	//{
+	
 	FOR_EACH_CELL
 	{
-		//arrayPosition = XY_TO_ARRAY(i, j);
+		// Intermediate variables to make the code easier to read
 		float arribaIzquierda{ solver.dens[XY_TO_ARRAY(i - 1, j - 1)] };
 
 		float izquierda{ solver.dens[XY_TO_ARRAY(i, j - 1)] };
@@ -316,6 +217,7 @@ static void DrawDensity(void)
 		float valor{ (actual + arriba + izquierda + arribaIzquierda) / 4 };
 
 
+		// To avoid pixelation, make an interpolation using 4 cells
 		glColor3f(valor, valor, valor);
 		glVertex2f((i - 0.5f) * h, (j - 0.5f) * h);
 
@@ -394,6 +296,12 @@ static void KeyFunc(unsigned char key, int x, int y)
 	case 'v':
 	case 'V':
 		dvel = !dvel;
+
+		if (dvel)
+			sView = sVelocity;
+		else
+			sView = sDensity;
+
 		break;
 
 	case 'j':
@@ -405,6 +313,10 @@ static void KeyFunc(unsigned char key, int x, int y)
 	case 'G':
 		solver.setIterativeMethod(0);
 		sMethod = sGauss;
+		break;
+	case 'i':
+	case 'I':
+		displayInfo = !displayInfo;
 		break;
 	}
 }
@@ -444,16 +356,24 @@ static void IdleFunc(void)
 }
 
 
+// This function calculates a frame rate
 void CalculateFrameRate()
 {
-	static int localFramesPerSecond = 0.0f;       // This will store our fps
-	static float lastTime = 0.0f;       // This will hold the time from the last frame
+	//Variables that need to be kept among calls to this function
+	static int localFramesPerSecond = 0.0f;
+	static float lastTime = 0.0f;
+
+	// Get the current time
 	int currentTime = clock() / CLOCKS_PER_SEC;
 	++localFramesPerSecond;
+
+	//Once it has been more than a second since the last update, it is time to get the frame rate
 	if (currentTime - lastTime > 1.0f)
 	{
+		// update the variable lastTime to use it in the next calculation
 		lastTime = currentTime;
-		//if(SHOW_FPS == 1) fprintf(stderr, "\nCurrent Frames Per Second: %d\n\n", (int)framesPerSecond);
+		
+		// Update the global variable used to print the information in the screen
 		framesPerSecond = localFramesPerSecond;
 		localFramesPerSecond = 0;
 	}
@@ -527,7 +447,6 @@ int main(int argc, char ** argv)
 
 	if (argc == 1) {
 		N = 64;
-		//N = 2;
 		dt = 0.1f;
 		diff = 0.0001f;
 		visc = 0.0f;
@@ -549,11 +468,13 @@ int main(int argc, char ** argv)
 	printf("\t Add densities with the right mouse button\n");
 	printf("\t Add velocities with the left mouse button and dragging the mouse\n");
 	printf("\n");
-	printf("\t Toggle density/velocity display with the 'v' key\n");
-	printf("\t Clear the simulation by pressing the 'c' key\n");
-	printf("\n");
 	printf("\t Set the iterative method to Gauss-Seidel by pressing 'g' key\n");
 	printf("\t Set the iterative method to Jacovi by pressing 'j' key\n");
+	printf("\n");
+	printf("\t Toggle density/velocity display with the 'v' key\n");
+	printf("\t Toggle info display with the 'i' key\n");
+	printf("\n");
+	printf("\t Clear the simulation by pressing the 'c' key\n");
 	printf("\t Quit by pressing the 'q' key\n");
 
 	dvel = false;

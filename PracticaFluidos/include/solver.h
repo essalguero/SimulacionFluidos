@@ -8,7 +8,7 @@
 
 // Define el numero de veces que se va a ejecutar el merodo iterativo de resolucion
 #define NUMERO_ITERACIONES 30
-#define PRECISION 0.01
+//#define PRECISION 0.01
 
 class Solver
 {
@@ -21,7 +21,7 @@ class Solver
 	// 1: Jacobi
 	int iterativeMethod;
 
-	int numeroIteraciones{ 0 };
+	int numeroIteraciones;
 
 public:
 	float * u, *v, *dens;
@@ -60,4 +60,3 @@ private:
 };
 
 #endif
-
