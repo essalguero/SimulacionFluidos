@@ -187,22 +187,26 @@ void Solver::SetBounds(int b, float * x)
 	2: y axis borders inverted, x axis equal.
 	Corner values allways are mean value between associated edges.
 	*/
+
+	int initialPosition = ((N / 2) - 2) * N + (N / 2 - 2);
+	int i, j;
+
 	switch (b)
 	{
 	case 0:
 		// inicializar horizontales
-		for (int i = 1; i < (N * N); i += (N + 2))
+		for (i = 1; i < (N * N); i += (N + 2))
 		{
 			x[i - 1] = x[i];
 		}
 
-		for (int i = N + 1; i < (N * N); i += (N + 2))
+		for (i = N + 1; i < (N * N); i += (N + 2))
 		{
 			x[i] = x[i - 1];
 		}
 
 		// inicializar verticales
-		for (int i = 1; i <= N; ++i)
+		for (i = 1; i <= N; ++i)
 		{
 			x[i] = x[i + N + 2];
 			x[((N + 2) * (N + 1)) + i] = x[((N + 2) * (N)) + i];
@@ -211,44 +215,78 @@ void Solver::SetBounds(int b, float * x)
 		break;
 	case 1:
 		// inicializar horizontales
-		for (int i = 1; i < (N * N); i += (N + 2))
+		for (i = 1; i < (N * N); i += (N + 2))
 		{
 			x[i - 1] = -(x[i]);
 		}
 
-		for (int i = N + 1; i < (N * N); i += (N + 2))
+		for (i = N + 1; i < (N * N); i += (N + 2))
 		{
 			x[i] = -(x[i - 1]);
 		}
 
 		// inicializar verticales
-		for (int i = 1; i <= N; ++i)
+		for (i = 1; i <= N; ++i)
 		{
 			x[i] = x[i + N + 2];
 			x[((N + 2) * (N + 1)) + i] = x[((N + 2) * (N)) + i];
 		}
-
+		
 		break;
 	case 2:
 		// inicializar horizontales
-		for (int i = 1; i < (N * N); i += (N + 2))
+		for (i = 1; i < (N * N); i += (N + 2))
 		{
 			x[i - 1] = x[i];
 		}
 
-		for (int i = N + 1; i < (N * N); i += (N + 2))
+		for (i = N + 1; i < (N * N); i += (N + 2))
 		{
 			x[i] = x[i - 1];
 		}
 
 		// inicializar verticales
-		for (int i = 1; i <= N; ++i)
+		for (i = 1; i <= N; ++i)
 		{
 			x[i] = -(x[i + N + 2]);
 			x[((N + 2) * (N + 1)) + i] = -(x[((N + 2) * (N)) + i]);
 		}
+
 		break;
 	}
+
+	// Check if the option to display an object in the screen is active
+	// In that case, set the boundary conditions for the fixed object
+	if (fixedObjectActive)
+	{
+		for (i = objectPosition; i < (objectPosition + objectSize); ++i)
+		{
+			for (j = objectPosition; j < (objectPosition + objectSize); ++j)
+			{
+				x[XY_TO_ARRAY(i, j)] = 0;
+			}
+		}
+
+		for (i = objectPosition; i <= objectPosition; ++i)
+		{
+			for (j = objectPosition; j < (objectPosition + objectSize); ++j)
+			{
+				x[XY_TO_ARRAY(i, j)] = -x[XY_TO_ARRAY(i - 1, j)];
+				x[XY_TO_ARRAY(i + (objectSize - 1), j)] = -x[XY_TO_ARRAY(i + objectSize, j)];
+			}
+		}
+
+		for (i = objectPosition; i < objectPosition + objectSize; ++i)
+		{
+			for (j = objectPosition; j <= objectPosition; ++j)
+			{
+				x[XY_TO_ARRAY(i, j)] = -x[XY_TO_ARRAY(i, j - 1)];
+				x[XY_TO_ARRAY(i, j + (objectSize - 1))] = -x[XY_TO_ARRAY(i, j + objectSize)];
+			}
+		}
+	}
+
+
 }
 
 
@@ -346,6 +384,52 @@ void Solver::LinSolve(int b, float * x, float * x0, float aij, float aii)
 
 }
 
+
+void Solver::OverRelaxation(int b, float * x, float * x0, float aij, float aii)
+{
+	float w = 1.5f;
+
+	int i = 0;
+	int j = 0;
+	//int arrayPosition;
+
+	float sumaTerminos;
+
+	int k;
+	for (k = 0; k < NUMERO_ITERACIONES; k++)
+	{
+		FOR_EACH_CELL
+		{
+
+			sumaTerminos = 0;
+
+			sumaTerminos -= x[XY_TO_ARRAY(i, j - 1)];
+
+			sumaTerminos -= x[XY_TO_ARRAY(i - 1, j)];
+
+			sumaTerminos -= x[XY_TO_ARRAY(i + 1, j)];
+
+			sumaTerminos -= x[XY_TO_ARRAY(i, j + 1)];
+
+
+			x[XY_TO_ARRAY(i, j)] = ((-aij * sumaTerminos) + x0[XY_TO_ARRAY(i, j)]);
+
+			x[XY_TO_ARRAY(i, j)] *= w / aii;
+
+			x[XY_TO_ARRAY(i, j)] += (1 - w) * x0[XY_TO_ARRAY(i, j)];
+
+		}
+		END_FOR
+
+		SetBounds(b, x);
+
+		numeroIteraciones = k + 1;
+
+		memccpy(x0, x, (N + 2) * (N + 2), sizeof(float));
+	}
+
+}
+
 /*
 Nuestra funciÃ³n de difusiÃ³n solo debe resolver el sistema de ecuaciones simplificado a las celdas contiguas de la casilla que queremos resolver,
 por lo que solo con la entrada de dos valores, debemos poder obtener el resultado.
@@ -359,13 +443,17 @@ void Solver::Diffuse(int b, float * x, float * x0)
 	float aii = 1 + (4 * aij);
 
 
-	if (iterativeMethod == 0)
+	switch (iterativeMethod)
 	{
-		LinSolve(b, x, x0, aij, aii);
-	}
-	else if (iterativeMethod == 1)
-	{
-		Jacobi(b, x, x0, aij, aii);
+		case 0:
+			LinSolve(b, x, x0, aij, aii);
+			break;
+		case 1:
+			Jacobi(b, x, x0, aij, aii);
+			break;
+		case 2:
+			OverRelaxation(b, x, x0, aij, aii);
+			break;
 	}
 }
 
@@ -482,4 +570,17 @@ void Solver::Project(float * u, float * v, float * p, float * div)
 void Solver::setIterativeMethod(int method)
 {
 	iterativeMethod = method;
+}
+
+void Solver::ActivateFixedObject(int position, int size)
+{
+	fixedObjectActive = true;
+
+	objectPosition = position;
+	objectSize = size;
+
+}
+void Solver::DeactivateFixedObject()
+{
+	fixedObjectActive = false;
 }

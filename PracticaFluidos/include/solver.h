@@ -6,9 +6,11 @@
 #define END_FOR }}
 #define SWAP(x0,x) {float * tmp=x0;x0=x;x=tmp;}
 
+#define FIXED_OBJECT_POSITION 30
+#define FIXED_OBJECT_WIDTH 8 
+
 // Define el numero de veces que se va a ejecutar el merodo iterativo de resolucion
 #define NUMERO_ITERACIONES 30
-//#define PRECISION 0.01
 
 class Solver
 {
@@ -38,6 +40,9 @@ public:
 
 	inline int getNumeroIteraciones() { return numeroIteraciones; };
 
+	void ActivateFixedObject(int position, int size);
+	void DeactivateFixedObject();
+
 private:
 	void DensStep(void);
 	void VelStep(void);
@@ -49,14 +54,12 @@ private:
 	void Advect(int b, float * d, float * d0, float * u, float * v);
 	void Project(float * u, float * v, float * p, float * div);
 
-	// For testing only
-
-	// N number elements in row
-	//void LinSolve_test(int b, float * x, float * x0, float a, float c, int N);
-
 	void Jacobi(int b, float * x, float * x0, float aij, float aii);
-	float * MultMat(float * m1, float * m2, int rows);
+	void OverRelaxation(int b, float * x, float * x0, float aij, float aii);
 
+	bool fixedObjectActive;
+	int objectPosition;
+	int objectSize;
 };
 
 #endif

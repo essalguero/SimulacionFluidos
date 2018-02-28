@@ -26,6 +26,7 @@ static Solver solver;
 // Set of variables to show as 'information' in the screen
 char* sJacobi = "Using Jacobi method";
 char* sGauss = "Using Gauss-Seidel method";
+char* sOverRelaxed = "Using Gauss-Seidel Over-Relaxed method";
 char* sMethod = sGauss;
 
 char* sVelocity = "Velocity View";
@@ -36,6 +37,7 @@ int framesPerSecond{ 0 };
 
 bool displayInfo{ true };
 
+bool drawCube{ false };
 
 using namespace std;
 
@@ -180,6 +182,30 @@ static void DrawVelocity(void)
 }
 
 
+static void DrawFixedSquare(void)
+{
+	float h{ 1 / (float)(N + 2) };
+
+
+	int i = FIXED_OBJECT_POSITION;
+	int j = FIXED_OBJECT_POSITION;
+
+	glBegin(GL_QUADS);
+
+	float valor = 255.0f;
+
+	glColor3f(0.0f, 0.0f, valor);
+
+
+
+	glVertex2f((i - 0.5f) * h, (j - 0.5f) * h);
+	glVertex2f((i + FIXED_OBJECT_WIDTH - 0.5f) * h, (j - 0.5f) * h);
+	glVertex2f((i + FIXED_OBJECT_WIDTH - 0.5f) * h, (j + FIXED_OBJECT_WIDTH - 0.5f) * h);
+	glVertex2f((i - 0.5f) * h, (j + FIXED_OBJECT_WIDTH - 0.5f) * h);
+
+	glEnd();
+}
+
 static void DrawDensity(void)
 {
 	//int i, j;
@@ -314,6 +340,15 @@ static void KeyFunc(unsigned char key, int x, int y)
 		solver.setIterativeMethod(0);
 		sMethod = sGauss;
 		break;
+	case 'o':
+	case 'O':
+		solver.setIterativeMethod(2);
+		sMethod = sOverRelaxed;
+		break;
+	case 'd':
+	case 'D':
+			drawCube = !drawCube;
+			break;
 	case 'i':
 	case 'I':
 		displayInfo = !displayInfo;
@@ -387,8 +422,19 @@ static void DisplayFunc(void)
 
 	PreDisplay();
 
+
 	if (dvel) DrawVelocity();
 	else		DrawDensity();
+
+	if (drawCube)
+	{
+		DrawFixedSquare();
+		solver.ActivateFixedObject(FIXED_OBJECT_POSITION, FIXED_OBJECT_WIDTH);
+	}
+	else
+	{
+		solver.DeactivateFixedObject();
+	}
 
 	PostDisplay();
 }
@@ -467,9 +513,12 @@ int main(int argc, char ** argv)
 	printf("\n\nHow to use this demo:\n\n");
 	printf("\t Add densities with the right mouse button\n");
 	printf("\t Add velocities with the left mouse button and dragging the mouse\n");
+	printf("'\n");
+	printf("\t Activate the fixed cube by pressing 'd' key\n");
 	printf("\n");
 	printf("\t Set the iterative method to Gauss-Seidel by pressing 'g' key\n");
-	printf("\t Set the iterative method to Jacovi by pressing 'j' key\n");
+	printf("\t Set the iterative method to Gauss-Seidel Over-Relaxation by pressing 'o' key\n");
+	printf("\t Set the iterative method to Jacobi by pressing 'j' key\n");
 	printf("\n");
 	printf("\t Toggle density/velocity display with the 'v' key\n");
 	printf("\t Toggle info display with the 'i' key\n");
